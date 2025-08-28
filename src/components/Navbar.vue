@@ -12,7 +12,7 @@
       <!-- Navigation Links -->
       <div class="navbar-nav me-auto">
         <router-link class="nav-link" to="/">Home</router-link>
-        <router-link class="nav-link" to="/services">Services</router-link>
+        <router-link class="nav-link" to="/services">Get Support</router-link>
         <router-link class="nav-link" to="/resources">Information & Resources</router-link>
         <router-link class="nav-link" to="/involved">Get Involved</router-link>
         <router-link class="nav-link" to="/about">About Us</router-link>
