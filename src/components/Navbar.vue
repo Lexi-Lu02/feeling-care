@@ -1,5 +1,8 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <nav
+    class="navbar navbar-expand-lg navbar-dark bg-primary"
+    style="position: relative; z-index: 1000"
+  >
     <div class="container-fluid">
       <router-link to="/" class="navbar-brand">Feeling Care</router-link>
       <div>

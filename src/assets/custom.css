@@ -1,0 +1,209 @@
+:root {
+  /* Primary color - Dark muted green for navbar and headings */
+  --bs-primary: #657166;
+  --bs-primary-rgb: 101, 113, 102;
+
+  /* Secondary colors from the palette */
+  --light-blue: #99cdd8;
+  --pale-mint: #daebe1;
+  --light-peach: #fde8d3;
+  --muted-rose: #f3c3b2;
+  --light-sage: #cfd8c4;
+}
+
+/* Custom background color for the main content area */
+body {
+  background: linear-gradient(135deg, var(--light-peach) 0%, var(--pale-mint) 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: Tahoma, sans-serif;
+}
+
+.navbar {
+  position: relative !important;
+  z-index: 1000 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Custom styling for the navbar */
+.navbar.bg-primary {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Custom styling for headings */
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+/* Custom button styling */
+.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--pale-mint) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--light-sage) !important;
+  border-color: var(--light-sage) !important;
+  color: var(--bs-primary) !important;
+}
+
+/* Custom card styling */
+.card {
+  background-color: var(--pale-mint) !important;
+  border: 1px solid var(--light-sage) !important;
+}
+
+/* Custom link styling */
+a {
+  color: var(--bs-primary) !important;
+}
+
+a:hover {
+  color: var(--muted-rose) !important;
+}
+
+/* Homepage Layout Styles */
+.homepage {
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.hero-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, var(--light-peach) 0%, var(--pale-mint) 100%);
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--bs-primary);
+  margin-bottom: 20px;
+  text-shadow: 4px 4px 8px rgba(20, 29, 22, 0.5);
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  color: var(--bs-primary);
+  max-width: 600px;
+  margin: 0 auto 30px;
+  line-height: 1.6;
+}
+
+.hero-btn {
+  font-size: 1.1rem;
+  padding: 12px 30px;
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.hero-btn:hover {
+  background-color: var(--light-sage) !important;
+  border-color: var(--light-sage) !important;
+  color: var(--bs-primary) !important;
+}
+
+/* Data Section */
+.data-section {
+  padding: 60px 0;
+  background-color: var(--pale-mint);
+  margin-bottom: 60px;
+}
+
+.data-card {
+  text-align: center;
+  padding: 30px 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.data-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.data-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--bs-primary);
+  margin-bottom: 10px;
+}
+
+.data-label {
+  font-size: 1.1rem;
+  color: var(--bs-primary);
+  margin: 0;
+}
+
+/* Cards Section */
+.cards-section {
+  padding: 60px 0;
+  background-color: var(--light-peach);
+}
+
+.large-card {
+  background-color: var(--pale-mint) !important;
+  border: 1px solid var(--light-sage) !important;
+  border-radius: 15px;
+  padding: 40px;
+  height: 100%;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.small-card {
+  background-color: var(--pale-mint) !important;
+  border: 1px solid var(--light-sage) !important;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mini-card {
+  background-color: var(--pale-mint) !important;
+  border: 1px solid var(--light-sage) !important;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.card-title {
+  color: var(--bs-primary);
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.card-text {
+  color: var(--bs-primary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .data-number {
+    font-size: 2rem;
+  }
+}
