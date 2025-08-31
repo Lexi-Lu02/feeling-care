@@ -48,9 +48,45 @@
             <i class="search-icon">🔍</i>
             <input type="text" class="search-input" placeholder="Search" />
           </div>
-          <router-link class="nav-link login-link" to="/auth">Login/Signup</router-link>
+          <template v-if="currentUser">
+            <div class="user-menu">
+              <span class="user-info">{{ currentUser.username }} ({{ currentUser.role }})</span>
+              <router-link
+                v-if="currentUser.role === 'admin'"
+                class="nav-link admin-link"
+                to="/admin"
+                >Admin Dashboard</router-link
+              >
+              <button @click="logout" class="btn btn-outline-danger btn-sm">Logout</button>
+            </div>
+          </template>
+          <template v-else>
+            <router-link class="nav-link login-link" to="/auth">Login/Signup</router-link>
+          </template>
         </div>
       </div>
     </div>
   </nav>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getCurrentUser, logout as authLogout } from '../services/authService'
+
+// Define component name to fix linter error
+defineOptions({
+  name: 'NavigationBar',
+})
+
+const currentUser = ref(null)
+
+const logout = () => {
+  authLogout()
+  currentUser.value = null
+  window.location.reload()
+}
+
+onMounted(() => {
+  currentUser.value = getCurrentUser()
+})
+</script>

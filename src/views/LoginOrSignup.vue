@@ -1,14 +1,17 @@
 <script setup>
 import { ref } from 'vue'
 import { z } from 'zod'
+import { login, signup, ROLES } from '../services/authService'
 
 const isLogin = ref(true)
 
 const email = ref('')
 const password = ref('')
 const username = ref('')
+const selectedRole = ref('')
 
 const errors = ref({})
+const isLoading = ref(false)
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email'),
@@ -32,20 +35,27 @@ const signupSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Please enter 8 - 20 characters. Password must contain at least one uppercase letter, one lowercase letter, and one number',
     ),
+  role: z.string().min(1, 'Please select a role'),
 })
 
-function handleSubmit() {
+async function handleSubmit() {
   console.log('Form submitted!')
   console.log('isLogin:', isLogin.value)
   console.log('username:', username.value)
   console.log('email:', email.value)
   console.log('password:', password.value)
+  console.log('role:', selectedRole.value)
 
   try {
     const schema = isLogin.value ? loginSchema : signupSchema
     const formData = isLogin.value
       ? { email: email.value, password: password.value }
-      : { username: username.value, email: email.value, password: password.value }
+      : {
+          username: username.value,
+          email: email.value,
+          password: password.value,
+          role: selectedRole.value,
+        }
 
     console.log('formData:', formData)
     const result = schema.safeParse(formData)
@@ -71,21 +81,61 @@ function handleSubmit() {
     } else {
       console.log('Validation successful!')
       errors.value = {}
-      alert(
-        isLogin.value
-          ? `✅ Welcome back ${email.value}`
-          : `✅ Account created for ${username.value}`,
-      )
-      email.value = password.value = username.value = ''
+      isLoading.value = true
+
+      try {
+        let authResult
+        if (isLogin.value) {
+          // Use the authentication service for login
+          console.log('Attempting login with:', { email: email.value, password: password.value })
+          authResult = await login(email.value, password.value)
+          console.log('Login result:', authResult)
+        } else {
+          // Use the authentication service for signup
+          console.log('Attempting signup with:', {
+            username: username.value,
+            email: email.value,
+            role: selectedRole.value,
+          })
+          authResult = await signup(username.value, email.value, password.value, selectedRole.value)
+          console.log('Signup result:', authResult)
+        }
+
+        if (authResult.success) {
+          const userData = authResult.user
+          console.log('User data after auth:', userData)
+
+          // Emit login event or redirect based on role
+          if (userData.role === ROLES.ADMIN) {
+            alert(
+              `✅ Welcome Administrator ${userData.username}! Redirecting to admin dashboard...`,
+            )
+            // Redirect to admin dashboard
+            window.location.href = '/admin'
+          } else {
+            alert(`✅ Welcome back ${userData.username}!`)
+            // Redirect to home page
+            window.location.href = '/'
+          }
+        }
+      } catch (authError) {
+        console.error('Authentication error:', authError)
+        errors.value = { general: authError.message }
+      } finally {
+        isLoading.value = false
+      }
+
+      email.value = password.value = username.value = selectedRole.value = ''
     }
   } catch (error) {
     console.error('Validation error:', error)
     errors.value = { general: 'An error occurred during validation' }
+    isLoading.value = false
   }
 }
 
 function clearForm() {
-  email.value = password.value = username.value = ''
+  email.value = password.value = username.value = selectedRole.value = ''
   errors.value = {}
 }
 </script>
@@ -133,11 +183,26 @@ function clearForm() {
         </div>
       </div>
 
+      <!-- Role Selection (only for signup) -->
+      <div v-if="!isLogin" class="mb-3">
+        <label class="form-label">Role</label>
+        <select v-model="selectedRole" class="form-select" :class="{ 'is-invalid': errors.role }">
+          <option value="">Select a role</option>
+          <option value="user">User</option>
+          <option value="admin">Administrator</option>
+        </select>
+        <div v-if="errors.role" class="invalid-feedback">
+          {{ errors.role }}
+        </div>
+      </div>
+
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">
-          {{ isLogin ? 'Login' : 'Sign Up' }}
+        <button type="submit" class="btn btn-primary" :disabled="isLoading">
+          {{ isLoading ? 'Loading...' : isLogin ? 'Login' : 'Sign Up' }}
         </button>
-        <button type="button" @click="clearForm" class="btn btn-secondary">Clear</button>
+        <button type="button" @click="clearForm" class="btn btn-secondary" :disabled="isLoading">
+          Clear
+        </button>
       </div>
     </form>
 
