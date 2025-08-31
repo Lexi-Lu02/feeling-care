@@ -34,7 +34,7 @@
       <div class="container">
         <div class="section-header">
           <h2>Blogs</h2>
-          <button class="btn btn-outline-primary">See All →</button>
+          <router-link to="/blogs" class="btn btn-outline-primary">See All →</router-link>
         </div>
         <div class="row">
           <div class="col-12 col-sm-6 col-lg-4" v-for="(blog, index) in blogs" :key="index">

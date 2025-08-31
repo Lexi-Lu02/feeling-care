@@ -4,6 +4,7 @@ import GetSupport from './views/GetSupport.vue'
 import LoginOrSignup from './views/LoginOrSignup.vue'
 import InformationAndResources from './views/InformationAndResources.vue'
 import AdminDashboard from './views/AdminDashboard.vue'
+import BlogPage from './views/BlogPage.vue'
 import { requireAdmin } from './services/authService'
 
 const routes = [
@@ -11,6 +12,7 @@ const routes = [
   { path: '/support', component: GetSupport },
   { path: '/resources', component: InformationAndResources },
   { path: '/auth', component: LoginOrSignup },
+  { path: '/blogs', component: BlogPage },
   {
     path: '/admin',
     component: AdminDashboard,
