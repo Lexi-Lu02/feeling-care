@@ -6,32 +6,42 @@ A comprehensive mental health support website designed to provide resources, gui
 
 ### **Public Features**
 
-- **Homepage**: Overview of services and key statistics
-- **Get Support**: Emergency contacts and support services
-- **Information & Resources**: Educational content, blogs, podcasts, and videos
-- **Responsive Design**: Mobile-friendly interface
+- **🏠 Homepage**: Overview of services, key statistics, and quick access to support
+- **🆘 Get Support**: Emergency contacts, crisis resources, and support services
+- **📚 Information & Resources**: Educational content, blogs, podcasts, and videos
+- **📱 Responsive Design**: Mobile-friendly interface across all devices
+- **🔍 Search Functionality**: Find resources quickly and easily
 
 ### **User Authentication**
 
-- **Role-Based Access**: Two user roles (User and Administrator)
-- **Secure Login/Signup**: Form validation with Zod schema
-- **Session Management**: Persistent user sessions
+- **👥 Role-Based Access**: Two distinct user roles (User and Administrator)
+- **🔐 Secure Login/Signup**: Form validation with Zod schema validation
+- **💾 Session Management**: Persistent user sessions with localStorage
+- **🛡️ Input Validation**: Client-side validation for all forms
 
 ### **Admin Dashboard**
 
-- **User Management**: View, edit, and delete user accounts
-- **System Settings**: Configure site preferences and security
-- **Administrative Actions**: Content management and analytics
-- **Role-Based Permissions**: Admin-only access to sensitive features
+- **👤 User Management**: View, edit, and delete user accounts
+- **⚙️ System Settings**: Configure site preferences and security settings
+- **📊 Administrative Actions**: Content management and analytics tools
+- **🔒 Role-Based Permissions**: Admin-only access to sensitive features
+
+### **Blog System**
+
+- **📝 Interactive Blog Posts**: Detailed articles with first-person stories
+- **⭐ Rating System**: User ratings and reviews for blog content
+- **🏷️ Tag Filtering**: Filter blog posts by topics and categories
+- **📱 Responsive Blog Layout**: Optimized reading experience on all devices
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### **Prerequisites**
 
-- Node.js (version 16 or higher)
-- npm (comes with Node.js)
+- **Node.js** (version 16 or higher)
+- **npm** (comes with Node.js)
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
 
-### Installation
+### **Installation**
 
 1. **Clone the repository**
 
@@ -55,171 +65,205 @@ A comprehensive mental health support website designed to provide resources, gui
 4. **Open your browser**
    Navigate to `http://localhost:5173`
 
+### **Available Scripts**
+
+```bash
+# Development
+npm run dev          # Start development server with hot reload
+
+# Production
+npm run build        # Build for production
+npm run preview      # Preview production build locally
+
+# Code Quality
+npm run lint         # Run ESLint for code quality checks
+```
+
 ## 👥 User Guide
 
 ### **For Regular Users**
 
-#### **Navigation**
+#### **🏠 Homepage Navigation**
 
-- **Home**: Overview of Feeling Care services
-- **Get Support**: Access emergency contacts and support services
-- **Information & Resources**: Browse educational content
-- **Login/Signup**: Access your account
+- **Hero Section**: Main call-to-action with "Login/Sign up" button
+- **Statistics**: View impact numbers (Youth Helped, Volunteers, Partners)
+- **Quick Access Cards**: Direct links to Support, Resources, and more
 
-#### **Getting Support**
+#### **🆘 Getting Support**
 
-1. Click "Get Support" in the navigation
-2. View emergency contact information
-3. Browse available services and guidance resources
-4. Contact emergency services if needed (000, Lifeline, Kids Helpline)
+1. **Click "Get Support"** in the navigation menu
+2. **Emergency Section**: View crisis contact information
+3. **Services Section**: Browse available support services
+4. **Guidance Section**: Access helpful resources and information
 
-#### **Accessing Resources**
+**Emergency Contacts:**
 
-1. Navigate to "Information & Resources"
-2. Browse through:
-   - **Blogs**: Mental health articles and guides
-   - **Podcasts**: Audio content for mental wellbeing
-   - **Videos**: Visual resources and tutorials
-3. Click "See More" on any resource to access full content
+- **Emergency Services**: 000
+- **Lifeline**: 13 11 14
+- **Kids Helpline**: 1300 65 9467
+
+#### **📚 Accessing Resources**
+
+1. **Navigate to "Information & Resources"**
+2. **Browse Content Sections:**
+   - **📝 Blogs**: Mental health articles with personal stories
+   - **🎧 Podcasts**: Audio content for mental wellbeing
+   - **🎥 Videos**: Visual resources and tutorials
+3. **Click "See More"** on any resource to access full content
+4. **Use "See All"** buttons to explore complete collections
+
+#### **📝 Blog Reading Experience**
+
+1. **Browse Blog Posts**: View summaries and ratings
+2. **Filter by Tags**: Use tag system to find relevant content
+3. **Read Full Articles**: Click "Read More" for detailed stories
+4. **Rate Content**: Provide feedback on articles you've read
+5. **Navigate Easily**: Use breadcrumbs and navigation buttons
 
 ### **For Administrators**
 
-#### **Login Credentials**
+#### **🔐 Login Credentials**
 
 - **Email**: `admin@feelingcare.com`
 - **Password**: `Admin123`
 
-#### **Admin Dashboard Features**
+#### **📊 Admin Dashboard Features**
 
-1. **User Management**
-   - View all registered users
-   - Edit user information
-   - Delete user accounts
-   - Monitor user roles
+##### **User Management**
 
-2. **System Settings**
-   - Configure site name
-   - Toggle maintenance mode
-   - Set session timeout
-   - Manage password policies
+- **View Users**: See all registered user accounts
+- **Edit Profiles**: Modify user information and roles
+- **Delete Accounts**: Remove user accounts when necessary
+- **Role Management**: Assign and manage user permissions
 
-3. **Administrative Actions**
-   - Content management
-   - Analytics and reports
-   - Security settings
-   - System monitoring
+##### **System Settings**
+
+- **Site Configuration**: Set site name and basic settings
+- **Maintenance Mode**: Toggle site maintenance status
+- **Session Management**: Configure session timeout settings
+- **Security Policies**: Manage password and access policies
+
+##### **Administrative Actions**
+
+- **Content Management**: Manage blog posts and resources
+- **Analytics**: View user engagement and site statistics
+- **Security Settings**: Configure access controls and permissions
+- **System Monitoring**: Monitor site performance and health
 
 ## 🛠️ Technical Details
 
 ### **Built With**
 
-- **Frontend**: Vue.js 3 with Composition API
-- **Styling**: Bootstrap 5 + Custom CSS
-- **Validation**: Zod schema validation
+- **Frontend Framework**: Vue.js 3 with Composition API
+- **Styling Framework**: Bootstrap 5 + Custom CSS
+- **Validation Library**: Zod schema validation
 - **Routing**: Vue Router 4
 - **Build Tool**: Vite
+- **Package Manager**: npm
 
 ### **Project Structure**
 
 ```
 src/
 ├── assets/
-│   ├── custom.css          # Main CSS entry point
-│   ├── variables.css       # CSS variables and colors
-│   ├── navbar.css          # Navigation styles
+│   ├── custom.css          # Main CSS entry point with imports
+│   ├── variables.css       # CSS variables and color palette
+│   ├── navbar.css          # Navigation component styles
 │   ├── components.css      # Reusable component styles
 │   ├── pages.css           # Page-specific styles
-│   └── responsive.css      # Responsive design
+│   └── responsive.css      # Responsive design media queries
 ├── components/
-│   └── Navbar.vue          # Navigation component
+│   └── Navbar.vue          # Main navigation component
 ├── services/
-│   └── authService.js      # Authentication service
+│   ├── authService.js      # Authentication and user management
+│   └── blogService.js      # Blog data and content management
 ├── views/
-│   ├── HomePage.vue        # Homepage
-│   ├── GetSupport.vue      # Support page
-│   ├── InformationAndResources.vue  # Resources page
-│   ├── LoginOrSignup.vue   # Authentication page
-│   └── AdminDashboard.vue  # Admin dashboard
-└── router.js               # Route configuration
+│   ├── HomePage.vue        # Landing page
+│   ├── GetSupport.vue      # Support and emergency resources
+│   ├── InformationAndResources.vue  # Educational content
+│   ├── LoginOrSignup.vue   # Authentication forms
+│   ├── BlogPage.vue        # Blog listing and filtering
+│   ├── BlogPostDetail.vue  # Individual blog post view
+│   └── AdminDashboard.vue  # Administrative interface
+├── router.js               # Vue Router configuration
+└── main.js                 # Application entry point
 ```
 
-### **Available Scripts**
+### **Key Technologies**
 
-```bash
-# Development
-npm run dev          # Start development server
-
-# Production
-npm run build        # Build for production
-npm run preview      # Preview production build
-
-# Code Quality
-npm run lint         # Run ESLint
-```
+- **Vue.js 3**: Modern reactive framework
+- **Bootstrap 5**: Responsive UI components
+- **Vue Router**: Client-side routing
+- **Zod**: Schema validation
+- **CSS3**: Custom styling with CSS variables
+- **ES6+**: Modern JavaScript features
 
 ## 🎨 Design System
 
 ### **Color Palette**
 
-- **Primary**: Dark muted green (#657166)
+- **Primary Color**: Dark muted green (#657166)
 - **Secondary Colors**:
-  - Light Blue (#99cdd8)
-  - Pale Mint (#daebe1)
-  - Light Peach (#fde8d3)
-  - Muted Rose (#f3c3b2)
-  - Light Sage (#cfd8c4)
-  - Pale Green (#ecf2ee)
-  - Pale Pink (#f9f3ef)
+  - Light Blue (#99cdd8) - Accent and highlights
+  - Pale Mint (#daebe1) - Backgrounds and cards
+  - Light Peach (#fde8d3) - Warm accents
+  - Muted Rose (#f3c3b2) - Soft highlights
+  - Light Sage (#cfd8c4) - Natural elements
+  - Pale Green (#ecf2ee) - Subtle backgrounds
+  - Pale Pink (#f9f3ef) - Gentle highlights
 
 ### **Typography**
 
 - **Font Family**: Tahoma, sans-serif
 - **Responsive Design**: Mobile-first approach
+- **Accessibility**: High contrast ratios and readable fonts
+
+### **Component Design**
+
+- **Cards**: Rounded corners with subtle shadows
+- **Buttons**: Consistent styling with hover effects
+- **Forms**: Clean, accessible input fields
+- **Navigation**: Clear, intuitive menu structure
 
 ## 🔐 Security Features
 
 - **Role-Based Access Control**: Different permissions for users and admins
-- **Form Validation**: Client-side validation with Zod
+- **Form Validation**: Client-side validation with Zod schemas
 - **Session Management**: Secure user session handling
 - **Input Sanitization**: Protection against malicious input
+- **Route Guards**: Protected routes for admin access
 
 ## 📱 Responsive Design
 
-The website is fully responsive and optimized for:
+The website is fully responsive and optimized for all devices:
 
-- **Mobile phones** (< 576px)
-- **Tablets** (576px - 991px)
-- **Desktop** (≥ 992px)
-- **Large screens** (≥ 1200px)
+- **📱 Mobile phones** (< 576px): Touch-friendly interface
+- **📱 Large phones** (576px - 767px): Optimized layouts
+- **💻 Tablets** (768px - 991px): Enhanced navigation
+- **🖥️ Desktop** (992px - 1199px): Full feature access
+- **🖥️ Large screens** (≥ 1200px): Expanded layouts
+
+### **Responsive Features**
+
+- **Flexible Grid System**: Bootstrap-based responsive layouts
+- **Mobile Navigation**: Collapsible hamburger menu
+- **Touch-Friendly**: Optimized button sizes and spacing
+- **Readable Text**: Scalable typography across devices
 
 ## 🚨 Emergency Support
 
+### **Crisis Resources**
+
 If you're in immediate danger or experiencing a crisis:
 
-- **Emergency Services**: 000
-- **Lifeline**: 13 11 14
-- **Kids Helpline**: 1300 65 9467
+- **🚨 Emergency Services**: 000
+- **📞 Lifeline**: 13 11 14 (24/7 crisis support)
+- **👶 Kids Helpline**: 1300 65 9467 (5-25 years)
+- **🏥 Beyond Blue**: 1300 22 4636 (Depression and anxiety)
 
-## 🤝 Contributing
+### **Getting Help**
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is created for educational purposes as part of FIT5032 Assignment 1.
-
-## 📞 Support
-
-For technical support or questions about the website:
-
-- Check the documentation in `/src/assets/README.md`
-- Review the code comments
-- Contact the development team
-
----
-
-**Note**: This is a demonstration website created for educational purposes.
+1. **Immediate Crisis**: Call emergency services (000)
+2. **Mental Health Support**: Contact Lifeline or Kids Helpline
+3. **Online Resources**: Use the "Get Support" page
+4. **Professional Help**: Seek guidance from mental health professionals

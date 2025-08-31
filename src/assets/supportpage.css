@@ -1,0 +1,151 @@
+/* Support Page Styles */
+
+/* Support Page Layout */
+.support-page {
+  min-height: 100vh;
+}
+
+.support-hero {
+  padding: 60px 0;
+  background: linear-gradient(135deg, var(--light-peach) 0%, var(--pale-mint) 100%);
+  text-align: right;
+  margin-bottom: 40px;
+}
+
+.support-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--bs-primary);
+  margin-bottom: 20px;
+}
+
+.support-subtitle {
+  font-size: 1.2rem;
+  color: var(--bs-primary);
+  max-width: 600px;
+  margin: 0 0 0 auto;
+  line-height: 1.6;
+  text-align: right;
+}
+
+/* Emergency Section */
+.emergency-section {
+  padding: 40px 0;
+  background-color: var(--light-sage);
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.emergency-card {
+  background-color: var(--pale-green);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.emergency-card h2 {
+  color: var(--bs-primary);
+  margin-bottom: 15px;
+}
+
+.emergency-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.emergency-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: var(--bs-primary);
+  color: var(--pale-mint) !important;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.emergency-btn:hover {
+  background-color: var(--light-sage);
+  color: var(--bs-primary) !important;
+}
+
+/* Services Section */
+.services-section {
+  padding: 40px 0;
+  background-color: var(--light-peach);
+  margin-bottom: 40px;
+}
+
+.services-section h2 {
+  text-align: center;
+  color: var(--bs-primary);
+  margin-bottom: 30px;
+}
+
+.service-card {
+  background-color: var(--pale-pink);
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  height: 100%;
+}
+
+.service-card .card-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.service-card h3 {
+  color: var(--bs-primary);
+  margin-bottom: 15px;
+}
+
+.service-card p {
+  color: var(--bs-primary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* Guidance Section */
+.guidance-section {
+  padding: 40px 0;
+  background-color: var(--light-sage);
+  margin-bottom: 40px;
+}
+
+.guidance-section h2 {
+  text-align: center;
+  color: var(--bs-primary);
+  margin-bottom: 30px;
+}
+
+.guidance-card {
+  background-color: var(--pale-green);
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  height: 100%;
+}
+
+.guidance-card .card-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.guidance-card h3 {
+  color: var(--bs-primary);
+  margin-bottom: 15px;
+}
+
+.guidance-card p {
+  color: var(--bs-primary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}

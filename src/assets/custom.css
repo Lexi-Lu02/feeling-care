@@ -2,5 +2,10 @@
 @import './variables.css';
 @import './navbar.css';
 @import './components.css';
-@import './pages.css';
+@import './homepage.css';
+@import './supportpage.css';
+@import './infoandrespage.css';
+@import './admin.css';
+@import './blog.css';
+@import './blog-detail.css';
 @import './responsive.css';
