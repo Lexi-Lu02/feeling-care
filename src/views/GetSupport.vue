@@ -34,7 +34,7 @@
       <div class="container">
         <h2>Services We Offer</h2>
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-12 col-lg-6">
             <div class="service-card">
               <div class="card-icon">🏥</div>
               <h3>Local Associations</h3>
@@ -42,7 +42,7 @@
               <button class="btn btn-primary">Find Local Help</button>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-lg-6">
             <div class="service-card">
               <div class="card-icon">💬</div>
               <h3>Counseling & Webinars</h3>
@@ -61,7 +61,7 @@
       <div class="container">
         <h2>Guidance</h2>
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="guidance-card">
               <div class="card-icon">🛤️</div>
               <h3>Guided Recovery & Management</h3>
@@ -69,7 +69,7 @@
               <button class="btn btn-primary">Start Journey</button>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="guidance-card">
               <div class="card-icon">👨‍⚕️</div>
               <h3>How to Get Professional Help</h3>
@@ -77,7 +77,7 @@
               <button class="btn btn-primary">Find Professionals</button>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="guidance-card">
               <div class="card-icon">👨‍👩‍👧‍👦</div>
               <h3>Support for Guardians & Families</h3>

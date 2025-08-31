@@ -18,21 +18,21 @@
     <section class="data-section">
       <div class="container">
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="data-card">
               <div class="data-icon">📊</div>
               <div class="data-number">1,234</div>
               <p class="data-label">Youth Helped</p>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="data-card">
               <div class="data-icon">👥</div>
               <div class="data-number">567</div>
               <p class="data-label">Active Volunteers</p>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="data-card">
               <div class="data-icon">🏥</div>
               <div class="data-number">89</div>
@@ -48,7 +48,7 @@
       <div class="container">
         <div class="row">
           <!-- Large Card -->
-          <div class="col-lg-8">
+          <div class="col-12 col-lg-8">
             <div class="card large-card">
               <div class="card-body">
                 <div class="card-icon">💙</div>
@@ -63,7 +63,7 @@
           </div>
 
           <!-- Small Cards -->
-          <div class="col-lg-4">
+          <div class="col-12 col-lg-4">
             <div class="row">
               <div class="col-12 mb-3">
                 <div class="card small-card">
@@ -74,7 +74,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6 col-sm-6">
                 <div class="card mini-card">
                   <div class="card-body">
                     <div class="card-icon">🤝</div>
@@ -83,7 +83,7 @@
                   </div>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6 col-sm-6">
                 <div class="card mini-card">
                   <div class="card-body">
                     <div class="card-icon">ℹ️</div>

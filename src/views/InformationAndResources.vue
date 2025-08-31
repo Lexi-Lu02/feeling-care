@@ -37,7 +37,7 @@
           <button class="btn btn-outline-primary">See All →</button>
         </div>
         <div class="row">
-          <div class="col-md-4" v-for="(blog, index) in blogs" :key="index">
+          <div class="col-12 col-sm-6 col-lg-4" v-for="(blog, index) in blogs" :key="index">
             <div class="content-card">
               <div class="card-image-placeholder">
                 <span>📝</span>
@@ -61,7 +61,7 @@
           <button class="btn btn-outline-primary">See All →</button>
         </div>
         <div class="row">
-          <div class="col-md-4" v-for="(podcast, index) in podcasts" :key="index">
+          <div class="col-12 col-sm-6 col-lg-4" v-for="(podcast, index) in podcasts" :key="index">
             <div class="content-card">
               <div class="card-image-placeholder">
                 <span>🎧</span>
@@ -85,7 +85,7 @@
           <button class="btn btn-outline-primary">See All →</button>
         </div>
         <div class="row">
-          <div class="col-md-4" v-for="(video, index) in videos" :key="index">
+          <div class="col-12 col-sm-6 col-lg-4" v-for="(video, index) in videos" :key="index">
             <div class="content-card">
               <div class="card-image-placeholder">
                 <span>🎥</span>
