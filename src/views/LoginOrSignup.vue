@@ -39,13 +39,6 @@ const signupSchema = z.object({
 })
 
 async function handleSubmit() {
-  console.log('Form submitted!')
-  console.log('isLogin:', isLogin.value)
-  console.log('username:', username.value)
-  console.log('email:', email.value)
-  console.log('password:', password.value)
-  console.log('role:', selectedRole.value)
-
   try {
     const schema = isLogin.value ? loginSchema : signupSchema
     const formData = isLogin.value
@@ -57,14 +50,9 @@ async function handleSubmit() {
           role: selectedRole.value,
         }
 
-    console.log('formData:', formData)
     const result = schema.safeParse(formData)
-    console.log('validation result:', result)
 
     if (!result.success) {
-      console.log('Validation failed!')
-      console.log('result.error:', result.error)
-
       // Clear previous errors
       errors.value = {}
 
@@ -73,13 +61,9 @@ async function handleSubmit() {
         result.error.issues.forEach((error) => {
           const field = error.path[0]
           errors.value[field] = error.message
-          console.log(`Setting error for ${field}:`, error.message)
         })
       }
-
-      console.log('Final errors object:', errors.value)
     } else {
-      console.log('Validation successful!')
       errors.value = {}
       isLoading.value = true
 
@@ -87,33 +71,20 @@ async function handleSubmit() {
         let authResult
         if (isLogin.value) {
           // Use the authentication service for login
-          console.log('Attempting login with:', { email: email.value, password: password.value })
           authResult = await login(email.value, password.value)
-          console.log('Login result:', authResult)
         } else {
           // Use the authentication service for signup
-          console.log('Attempting signup with:', {
-            username: username.value,
-            email: email.value,
-            role: selectedRole.value,
-          })
           authResult = await signup(username.value, email.value, password.value, selectedRole.value)
-          console.log('Signup result:', authResult)
         }
 
         if (authResult.success) {
           const userData = authResult.user
-          console.log('User data after auth:', userData)
 
           // Emit login event or redirect based on role
           if (userData.role === ROLES.ADMIN) {
-            alert(
-              `✅ Welcome Administrator ${userData.username}! Redirecting to admin dashboard...`,
-            )
             // Redirect to admin dashboard
             window.location.href = '/admin'
           } else {
-            alert(`✅ Welcome back ${userData.username}!`)
             // Redirect to home page
             window.location.href = '/'
           }

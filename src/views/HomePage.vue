@@ -9,7 +9,7 @@
             Your trusted mental health companion for youth. We provide support, resources, and a
             safe space for young people to find help when they need it most.
           </p>
-          <button class="btn btn-primary hero-btn">Signup now</button>
+          <router-link to="/auth" class="btn btn-primary hero-btn">Login/Sign up</router-link>
         </div>
       </div>
     </section>

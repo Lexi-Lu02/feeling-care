@@ -5,6 +5,7 @@ import LoginOrSignup from './views/LoginOrSignup.vue'
 import InformationAndResources from './views/InformationAndResources.vue'
 import AdminDashboard from './views/AdminDashboard.vue'
 import BlogPage from './views/BlogPage.vue'
+import BlogPostDetail from './views/BlogPostDetail.vue'
 import { requireAdmin } from './services/authService'
 
 const routes = [
@@ -13,6 +14,7 @@ const routes = [
   { path: '/resources', component: InformationAndResources },
   { path: '/auth', component: LoginOrSignup },
   { path: '/blogs', component: BlogPage },
+  { path: '/blogs/:id', component: BlogPostDetail },
   {
     path: '/admin',
     component: AdminDashboard,

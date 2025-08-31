@@ -145,42 +145,54 @@ const adminActions = ref([
     title: 'Manage Users',
     description: 'Add, edit, or remove user accounts',
     buttonText: 'Manage Users',
-    handler: () => alert('User management feature clicked!'),
+    handler: () => {
+      // User management feature clicked
+    },
   },
   {
     icon: '📝',
     title: 'Content Management',
     description: 'Manage website content and resources',
     buttonText: 'Manage Content',
-    handler: () => alert('Content management feature clicked!'),
+    handler: () => {
+      // Content management feature clicked
+    },
   },
   {
     icon: '📊',
     title: 'Analytics',
     description: 'View detailed system analytics and reports',
     buttonText: 'View Analytics',
-    handler: () => alert('Analytics feature clicked!'),
+    handler: () => {
+      // Analytics feature clicked
+    },
   },
   {
     icon: '⚙️',
     title: 'System Settings',
     description: 'Configure system settings and preferences',
     buttonText: 'Settings',
-    handler: () => alert('System settings feature clicked!'),
+    handler: () => {
+      // System settings feature clicked
+    },
   },
   {
     icon: '🔒',
     title: 'Security',
     description: 'Manage security settings and access controls',
     buttonText: 'Security',
-    handler: () => alert('Security feature clicked!'),
+    handler: () => {
+      // Security feature clicked
+    },
   },
   {
     icon: '📋',
     title: 'Reports',
     description: 'Generate and view system reports',
     buttonText: 'Reports',
-    handler: () => alert('Reports feature clicked!'),
+    handler: () => {
+      // Reports feature clicked
+    },
   },
 ])
 
@@ -204,26 +216,26 @@ const getRoleBadgeClass = (role) => {
   return role === 'admin' ? 'bg-danger' : 'bg-primary'
 }
 
-const editUser = (user) => {
-  alert(`Edit user: ${user.username}`)
+const editUser = () => {
+  // Edit user functionality
 }
 
 const deleteUser = (user) => {
   if (confirm(`Are you sure you want to delete user: ${user.username}?`)) {
     users.value = users.value.filter((u) => u.username !== user.username)
-    alert(`User ${user.username} deleted successfully!`)
+    // User deleted successfully
   }
 }
 
 const saveSettings = () => {
-  alert('General settings saved successfully!')
+  // General settings saved
 }
 
 const saveSecuritySettings = () => {
-  alert('Security settings saved successfully!')
+  // Security settings saved
 }
 
 onMounted(() => {
-  console.log('Admin Dashboard loaded for user:', currentUser.value)
+  // Dashboard loaded
 })
 </script>

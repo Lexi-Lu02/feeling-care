@@ -11,8 +11,7 @@
               to help you on your journey to better mental wellbeing.
             </p>
             <div class="hero-buttons">
-              <router-link to="/auth" class="btn btn-primary me-3">Login</router-link>
-              <router-link to="/auth" class="btn btn-primary">Signup</router-link>
+              <router-link to="/auth" class="btn btn-primary">Login/Sign up</router-link>
             </div>
           </div>
           <div class="col-lg-6">
@@ -45,7 +44,9 @@
               <div class="card-content">
                 <h3>{{ blog.title }}</h3>
                 <p>{{ blog.description }}</p>
-                <button class="btn btn-primary">See More</button>
+                <router-link :to="`/blogs/${blog.id}`" class="btn btn-primary"
+                  >See More</router-link
+                >
               </div>
             </div>
           </div>
@@ -108,16 +109,19 @@ import { ref } from 'vue'
 
 const blogs = ref([
   {
+    id: 1,
     title: 'Understanding Anxiety in Youth',
     description:
       'Learn about the signs, symptoms, and effective coping strategies for managing anxiety in young people.',
   },
   {
+    id: 2,
     title: 'Building Resilience Through Adversity',
     description:
       "Discover practical techniques to develop mental resilience and overcome life's challenges.",
   },
   {
+    id: 3,
     title: 'Digital Wellbeing in the Modern Age',
     description:
       'Explore the impact of technology on mental health and strategies for maintaining digital balance.',

@@ -103,13 +103,27 @@
                   <p class="post-excerpt">{{ post.excerpt }}</p>
 
                   <div class="post-rating">
-                    <div class="stars">
-                      <span v-for="star in 5" :key="star" class="star">★</span>
+                    <div class="rating-display">
+                      <div class="average-rating">
+                        <span class="rating-score">{{ post.averageRating.toFixed(1) }}</span>
+                        <div class="stars">
+                          <span
+                            v-for="star in 5"
+                            :key="star"
+                            class="star"
+                            :class="{ filled: star <= Math.round(post.averageRating) }"
+                          >
+                            ★
+                          </span>
+                        </div>
+                      </div>
+                      <span class="reviews">{{ post.ratingCount }} Reviews</span>
                     </div>
-                    <span class="reviews">{{ post.reviews }} Reviews</span>
                   </div>
 
-                  <button class="btn btn-primary read-more-btn">Read More</button>
+                  <router-link :to="`/blogs/${post.id}`" class="btn btn-primary read-more-btn"
+                    >Read More</router-link
+                  >
                 </div>
               </div>
             </div>
@@ -128,6 +142,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { allPosts, handleImageError } from '../services/blogService'
 
 // Tags for filtering
 const tags = ref([
@@ -144,70 +159,6 @@ const tags = ref([
 ])
 
 const selectedTags = ref([])
-
-// Blog posts data
-const allPosts = ref([
-  {
-    title: "Understanding Anxiety in Young People: A Parent's Guide",
-    author: 'Dr. Sarah Johnson',
-    date: '15/12/2024',
-    tags: ['Anxiety', 'Teenagers', 'Mental Health'],
-    excerpt:
-      'Anxiety is one of the most common mental health challenges facing young people today. In this comprehensive guide, we explore the signs and symptoms of anxiety in children and teenagers, common triggers, and evidence-based strategies for support. Learn how to recognize when your child might be struggling and discover practical ways to help them build resilience and coping skills.',
-    reviews: 127,
-    image: '57.jpg',
-  },
-  {
-    title: "Building Resilience: How to Bounce Back from Life's Challenges",
-    author: 'Prof. Michael Chen',
-    date: '12/12/2024',
-    tags: ['Resilience', 'Coping Skills', 'Self-Care'],
-    excerpt:
-      "Resilience isn't about avoiding difficulties—it's about developing the skills to navigate them effectively. This article explores the science behind resilience and provides practical techniques for building mental strength. From developing a growth mindset to practicing self-compassion, discover how to cultivate resilience in yourself and support others in their journey.",
-    reviews: 89,
-    image: '102.jpg',
-  },
-  {
-    title: 'Digital Wellbeing: Finding Balance in a Connected World',
-    author: 'Dr. Emily Rodriguez',
-    date: '10/12/2024',
-    tags: ['Digital Health', 'Work-Life Balance', 'Technology'],
-    excerpt:
-      'Technology has transformed how we live, work, and connect, but it also presents new challenges for our mental health. Learn about the impact of digital devices on our wellbeing and discover strategies for creating healthy boundaries with technology. From digital detox techniques to mindful social media use, find practical ways to maintain balance in our increasingly connected world.',
-    reviews: 203,
-    image: '108.jpg',
-  },
-  {
-    title: 'Supporting Your Child Through Mental Health Challenges',
-    author: 'Dr. Lisa Thompson',
-    date: '08/12/2024',
-    tags: ['Parenting', 'Children', 'Support'],
-    excerpt:
-      "When your child is struggling with mental health challenges, it can feel overwhelming and isolating. This guide provides parents with practical advice on how to support their child's mental health journey. Learn about effective communication strategies, when to seek professional help, and how to take care of your own mental health while supporting your child.",
-    reviews: 156,
-    image: '112.jpg',
-  },
-  {
-    title: 'Mindfulness in Daily Life: Simple Practices for Better Mental Health',
-    author: 'Sarah Williams',
-    date: '05/12/2024',
-    tags: ['Mindfulness', 'Self-Care', 'Techniques'],
-    excerpt:
-      "Mindfulness isn't just about meditation—it's a way of living that can transform your relationship with stress and anxiety. Discover simple mindfulness practices you can integrate into your daily routine, from mindful breathing exercises to present-moment awareness techniques. Learn how these practices can help reduce stress, improve focus, and enhance overall wellbeing.",
-    reviews: 94,
-    image: '125.jpg',
-  },
-  {
-    title: 'Breaking the Stigma: How to Talk About Mental Health',
-    author: 'Dr. James Wilson',
-    date: '03/12/2024',
-    tags: ['Stigma', 'Awareness', 'Mental Health'],
-    excerpt:
-      'Mental health stigma remains one of the biggest barriers to people seeking help. This article explores how stigma affects individuals and communities, and provides practical strategies for challenging misconceptions about mental health. Learn how to have open, supportive conversations about mental health and contribute to creating a more understanding and compassionate society.',
-    reviews: 178,
-    image: '126.jpg',
-  },
-])
 
 const displayedPosts = ref(3)
 const hasMorePosts = ref(true)
@@ -240,16 +191,6 @@ const loadMorePosts = () => {
   displayedPosts.value += 3
   if (displayedPosts.value >= allPosts.value.length) {
     hasMorePosts.value = false
-  }
-}
-
-// Handle image loading errors
-const handleImageError = (event) => {
-  // Hide the broken image and show fallback
-  event.target.style.display = 'none'
-  const fallback = event.target.nextElementSibling
-  if (fallback) {
-    fallback.style.display = 'flex'
   }
 }
 </script>
