@@ -75,8 +75,6 @@
 
             <!-- Rating System -->
             <div class="rating-section">
-              <h3>Rate This Article</h3>
-
               <!-- Current Rating Display -->
               <div class="current-rating">
                 <div class="rating-info">
@@ -95,8 +93,8 @@
                 </div>
               </div>
 
-              <!-- User Rating -->
-              <div class="user-rating">
+              <!-- User Rating (only for authenticated users) -->
+              <div v-if="isLoggedIn" class="user-rating">
                 <p class="rate-prompt">How would you rate this article?</p>
                 <div class="rating-input">
                   <span
@@ -120,6 +118,102 @@
                   }}
                 </div>
               </div>
+
+              <!-- Login prompt for unauthenticated users -->
+              <div v-else class="login-prompt">
+                <p class="rate-prompt">
+                  Please <router-link to="/auth" class="login-link">sign in</router-link> to rate
+                  this article
+                </p>
+              </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+              <h3>Comments ({{ comments.length }})</h3>
+
+              <!-- Comment Form (only for authenticated users) -->
+              <div v-if="isLoggedIn" class="comment-form">
+                <h4>Leave a Comment</h4>
+                <p class="comment-as">
+                  Commenting as: <strong>{{ currentUser.username }}</strong>
+                </p>
+                <form @submit.prevent="submitComment">
+                  <div class="form-group">
+                    <label for="commentContent">Your Comment</label>
+                    <textarea
+                      id="commentContent"
+                      v-model="newComment.content"
+                      required
+                      rows="4"
+                      placeholder="Share your thoughts..."
+                    ></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Post Comment</button>
+                </form>
+              </div>
+
+              <!-- Login prompt for unauthenticated users -->
+              <div v-else class="login-prompt">
+                <h4>Leave a Comment</h4>
+                <p>
+                  Please <router-link to="/auth" class="login-link">sign in</router-link> to post a
+                  comment
+                </p>
+              </div>
+
+              <!-- Comments List -->
+              <div class="comments-list">
+                <div v-if="comments.length === 0" class="no-comments">
+                  <p>No comments yet. Be the first to share your thoughts!</p>
+                </div>
+
+                <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                  <div class="comment-header">
+                    <div class="comment-author">
+                      <strong>{{ comment.author }}</strong>
+                      <span class="comment-date">{{ formatDate(comment.timestamp) }}</span>
+                    </div>
+                    <button
+                      v-if="isLoggedIn && comment.author === currentUser.username"
+                      @click="deleteComment(comment.id)"
+                      class="btn-delete-comment"
+                      title="Delete comment"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+
+                  <div class="comment-content">
+                    {{ comment.content }}
+                  </div>
+
+                  <div class="comment-actions">
+                    <button
+                      v-if="isLoggedIn"
+                      @click="toggleLike(comment.id)"
+                      class="btn-like"
+                      :class="{ active: comment.userLiked }"
+                      :title="comment.userLiked ? 'Unlike' : 'Like'"
+                    >
+                      👍 {{ comment.likes }}
+                    </button>
+                    <button
+                      v-if="isLoggedIn"
+                      @click="toggleDislike(comment.id)"
+                      class="btn-dislike"
+                      :class="{ active: comment.userDisliked }"
+                      :title="comment.userDisliked ? 'Remove dislike' : 'Dislike'"
+                    >
+                      👎 {{ comment.dislikes }}
+                    </button>
+                    <div v-if="!isLoggedIn" class="login-prompt-small">
+                      <router-link to="/auth" class="login-link">Sign in</router-link> to
+                      like/dislike
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Navigation -->
@@ -136,15 +230,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { allPosts, handleImageError, getStoryContent } from '../services/blogService'
+import { getCurrentUser, isAuthenticated } from '../services/authService'
 
 const route = useRoute()
 const post = ref({})
 const hoverRating = ref(0)
 const loading = ref(true)
 const error = ref(false)
+
+// Comment system state
+const comments = ref([])
+const newComment = ref({
+  author: '',
+  content: '',
+})
+
+// Authentication state
+const currentUser = computed(() => getCurrentUser())
+const isLoggedIn = computed(() => isAuthenticated())
 
 onMounted(() => {
   const postId = parseInt(route.params.id)
@@ -153,6 +259,8 @@ onMounted(() => {
   if (foundPost) {
     post.value = foundPost
     loading.value = false
+
+    loadComments(postId)
   } else {
     // Handle case where post is not found
     error.value = true
@@ -160,8 +268,118 @@ onMounted(() => {
   }
 })
 
+// Comment functionality
+const loadComments = (postId) => {
+  const storedComments = localStorage.getItem(`comments_${postId}`)
+  if (storedComments) {
+    comments.value = JSON.parse(storedComments)
+  }
+}
+
+const saveComments = () => {
+  localStorage.setItem(`comments_${post.value.id}`, JSON.stringify(comments.value))
+}
+
+const submitComment = () => {
+  if (isLoggedIn.value && newComment.value.content.trim()) {
+    const comment = {
+      id: Date.now(),
+      author: currentUser.value.username,
+      content: newComment.value.content.trim(),
+      timestamp: new Date(),
+      likes: 0,
+      dislikes: 0,
+      userLiked: false,
+      userDisliked: false,
+    }
+
+    comments.value.unshift(comment)
+
+    // Clear form
+    newComment.value = {
+      author: '',
+      content: '',
+    }
+
+    saveComments()
+  }
+}
+
+const deleteComment = (commentId) => {
+  if (isLoggedIn.value && confirm('Are you sure you want to delete this comment?')) {
+    comments.value = comments.value.filter((comment) => comment.id !== commentId)
+    saveComments()
+  }
+}
+
+const toggleLike = (commentId) => {
+  if (!isLoggedIn.value) return
+
+  const comment = comments.value.find((c) => c.id === commentId)
+  if (comment) {
+    if (comment.userLiked) {
+      // Remove like
+      comment.userLiked = false
+      comment.likes--
+    } else {
+      // Add like
+      if (comment.userDisliked) {
+        // Remove dislike first
+        comment.userDisliked = false
+        comment.dislikes--
+      }
+      comment.userLiked = true
+      comment.likes++
+    }
+    saveComments()
+  }
+}
+
+const toggleDislike = (commentId) => {
+  if (!isLoggedIn.value) return
+
+  const comment = comments.value.find((c) => c.id === commentId)
+  if (comment) {
+    if (comment.userDisliked) {
+      // Remove dislike
+      comment.userDisliked = false
+      comment.dislikes--
+    } else {
+      // Add dislike
+      if (comment.userLiked) {
+        // Remove like first
+        comment.userLiked = false
+        comment.likes--
+      }
+      comment.userDisliked = true
+      comment.dislikes++
+    }
+    saveComments()
+  }
+}
+
+const formatDate = (date) => {
+  const now = new Date()
+  const commentDate = new Date(date)
+  const diffInSeconds = Math.floor((now - commentDate) / 1000)
+
+  if (diffInSeconds < 60) {
+    return 'Just now'
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+  } else {
+    return commentDate.toLocaleDateString()
+  }
+}
+
 // Rating functionality
 const ratePost = (postId, rating) => {
+  if (!isLoggedIn.value) return
+
   if (post.value.id === postId) {
     // Update user rating
     post.value.userRating = rating
