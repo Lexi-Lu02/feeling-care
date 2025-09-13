@@ -8,6 +8,7 @@ import AdminDashboard from './views/AdminDashboard.vue'
 import BlogPage from './views/BlogPage.vue'
 import BlogPostDetail from './views/BlogPostDetail.vue'
 import { requireAdmin } from './services/authService'
+import { securityGuard } from './middleware/security'
 
 const routes = [
   { path: '/', component: Home },
@@ -24,7 +25,12 @@ const routes = [
   },
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+// Apply security guard to all routes
+router.beforeEach(securityGuard)
+
+export default router

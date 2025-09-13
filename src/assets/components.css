@@ -18,6 +18,18 @@
   color: var(--bs-primary) !important;
 }
 
+.btn-outline-primary {
+  background-color: transparent !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--bs-primary) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--pale-mint) !important;
+}
+
 /* Custom card styling */
 .card {
   background-color: var(--pale-mint) !important;

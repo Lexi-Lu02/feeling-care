@@ -38,10 +38,7 @@
                 <li><i class="fas fa-check-circle"></i> Enable research and development</li>
               </ul>
               <div class="section-buttons">
-                <button class="btn btn-primary btn-lg me-3" @click="scrollToDonation">
-                  <i class="fas fa-donate me-2"></i>Make a Donation
-                </button>
-                <button class="btn btn-outline-primary btn-lg" @click="learnMoreAboutDonations">
+                <button class="btn btn-primary btn-lg" @click="learnMoreAboutDonations">
                   <i class="fas fa-info-circle me-2"></i>Learn More
                 </button>
               </div>
@@ -114,6 +111,9 @@
             <div class="story-form-card">
               <h3>Share Your Experience</h3>
               <form @submit.prevent="submitStory">
+                <!-- CSRF Token -->
+                <input type="hidden" name="csrf_token" :value="csrfToken" />
+
                 <!-- Story Type Selection -->
                 <div class="mb-3">
                   <label class="form-label">How would you like to share your story?</label>
@@ -151,11 +151,16 @@
                   <input
                     type="text"
                     class="form-control"
+                    :class="{ 'is-invalid': formErrors.title }"
                     id="storyTitle"
                     v-model="storyForm.title"
                     placeholder="Give your story a meaningful title"
+                    maxlength="200"
                     required
                   />
+                  <div v-if="formErrors.title" class="invalid-feedback">
+                    {{ formErrors.title }}
+                  </div>
                 </div>
 
                 <!-- Text Story Content -->
@@ -163,12 +168,17 @@
                   <label for="storyContent" class="form-label">Your Story</label>
                   <textarea
                     class="form-control"
+                    :class="{ 'is-invalid': formErrors.content }"
                     id="storyContent"
                     rows="6"
                     v-model="storyForm.content"
                     placeholder="Share your mental health journey, challenges, triumphs, or insights..."
+                    maxlength="10000"
                     required
                   ></textarea>
+                  <div v-if="formErrors.content" class="invalid-feedback">
+                    {{ formErrors.content }}
+                  </div>
                 </div>
 
                 <!-- File Upload Section -->
@@ -234,11 +244,16 @@
                   <label for="mediaDescription" class="form-label">Description (Optional)</label>
                   <textarea
                     class="form-control"
+                    :class="{ 'is-invalid': formErrors.description }"
                     id="mediaDescription"
                     rows="3"
                     v-model="storyForm.description"
                     placeholder="Provide a brief description of your story or what you'd like to share..."
+                    maxlength="10000"
                   ></textarea>
+                  <div v-if="formErrors.description" class="invalid-feedback">
+                    {{ formErrors.description }}
+                  </div>
                 </div>
 
                 <!-- Cover Image Upload -->
@@ -341,8 +356,8 @@
                 <button class="btn btn-primary btn-lg me-3" @click="contributeExpertise">
                   <i class="fas fa-chalkboard-teacher me-2"></i>Share Knowledge
                 </button>
-                <button class="btn btn-outline-primary btn-lg" @click="viewResources">
-                  <i class="fas fa-book me-2"></i>View Resources
+                <button class="btn btn-outline-primary btn-lg" @click="getSupport">
+                  <i class="fas fa-hands-helping me-2"></i>Get Support
                 </button>
               </div>
             </div>
@@ -407,15 +422,14 @@
                 <button class="btn btn-primary btn-lg me-3" @click="joinCommunity">
                   <i class="fas fa-user-plus me-2"></i>Join Community
                 </button>
-                <button class="btn btn-outline-primary btn-lg" @click="viewEvents">
-                  <i class="fas fa-calendar me-2"></i>View Events
+                <button class="btn btn-outline-primary btn-lg" @click="aboutUs">
+                  <i class="fas fa-info-circle me-2"></i>About Us
                 </button>
               </div>
             </div>
           </div>
           <div class="col-lg-6 order-lg-1">
             <div class="join-options">
-              <h3>Ways to Join</h3>
               <div class="join-card">
                 <div class="join-icon">
                   <i class="fas fa-hands-helping"></i>
@@ -466,6 +480,15 @@
 </template>
 
 <script>
+import {
+  sanitizeInput,
+  validateFileUpload,
+  validateStoryContent,
+  validateStoryTitle,
+  rateLimiter,
+  generateCSRFToken,
+} from '../utils/security.js'
+
 export default {
   name: 'GetInvolved',
   data() {
@@ -486,7 +509,13 @@ export default {
       isImageDragOver: false,
       showSuccessMessage: false,
       successMessage: '',
+      csrfToken: '',
+      formErrors: {},
     }
+  },
+  mounted() {
+    // Generate CSRF token for form security
+    this.csrfToken = generateCSRFToken()
   },
   computed: {
     isFormValid() {
@@ -524,8 +553,8 @@ export default {
       })
     },
     readStories() {
-      // Navigate to stories section or blog
-      this.$router.push('/blog')
+      // Navigate to Information & Resources page
+      this.$router.push('/resources')
     },
     setStoryType(type) {
       this.storyForm.type = type
@@ -561,21 +590,23 @@ export default {
       }
     },
     validateAndSetFile(file) {
-      const maxSize = this.storyForm.type === 'audio' ? 50 * 1024 * 1024 : 100 * 1024 * 1024 // 50MB for audio, 100MB for video
-      const allowedTypes =
+      const options =
         this.storyForm.type === 'audio'
-          ? ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mpeg']
-          : ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/avi']
+          ? {
+              maxSize: 50 * 1024 * 1024, // 50MB for audio
+              allowedTypes: ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mpeg'],
+              allowedExtensions: ['.mp3', '.wav', '.m4a', '.mpeg'],
+            }
+          : {
+              maxSize: 100 * 1024 * 1024, // 100MB for video
+              allowedTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/avi'],
+              allowedExtensions: ['.mp4', '.mov', '.avi'],
+            }
 
-      if (file.size > maxSize) {
-        this.showSuccess(
-          `File is too large. Maximum size is ${this.storyForm.type === 'audio' ? '50MB' : '100MB'}.`,
-        )
-        return
-      }
+      const validation = validateFileUpload(file, options)
 
-      if (!allowedTypes.includes(file.type)) {
-        this.showSuccess(`Invalid file type. Please select a ${this.storyForm.type} file.`)
+      if (!validation.isValid) {
+        this.showSuccess(`File validation failed: ${validation.errors.join(', ')}`)
         return
       }
 
@@ -619,16 +650,16 @@ export default {
       }
     },
     validateAndSetImage(file) {
-      const maxSize = 10 * 1024 * 1024 // 10MB for images
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
-
-      if (file.size > maxSize) {
-        this.showSuccess('Image is too large. Maximum size is 10MB.')
-        return
+      const options = {
+        maxSize: 10 * 1024 * 1024, // 10MB for images
+        allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'],
+        allowedExtensions: ['.jpg', '.jpeg', '.png', '.gif'],
       }
 
-      if (!allowedTypes.includes(file.type)) {
-        this.showSuccess('Invalid image format. Please select a JPG, PNG, or GIF file.')
+      const validation = validateFileUpload(file, options)
+
+      if (!validation.isValid) {
+        this.showSuccess(`Image validation failed: ${validation.errors.join(', ')}`)
         return
       }
 
@@ -647,6 +678,57 @@ export default {
       this.$refs.imageInput.value = ''
     },
     submitStory() {
+      // Rate limiting check
+      const userIdentifier = 'story-submission-' + (this.$store?.state?.user?.id || 'anonymous')
+      if (!rateLimiter.isAllowed(userIdentifier)) {
+        this.showSuccess('Too many submissions. Please try again later.')
+        return
+      }
+
+      // Clear previous errors
+      this.formErrors = {}
+
+      // Validate title
+      const titleValidation = validateStoryTitle(this.storyForm.title)
+      if (!titleValidation.isValid) {
+        this.formErrors.title = titleValidation.errors.join(', ')
+        this.showSuccess('Please fix the errors in the form.')
+        return
+      }
+
+      // Validate content based on story type
+      if (this.storyForm.type === 'text') {
+        const contentValidation = validateStoryContent(this.storyForm.content)
+        if (!contentValidation.isValid) {
+          this.formErrors.content = contentValidation.errors.join(', ')
+          this.showSuccess('Please fix the errors in the form.')
+          return
+        }
+      }
+
+      // Validate description if provided
+      if (this.storyForm.description) {
+        const descValidation = validateStoryContent(this.storyForm.description)
+        if (!descValidation.isValid) {
+          this.formErrors.description = descValidation.errors.join(', ')
+          this.showSuccess('Please fix the errors in the form.')
+          return
+        }
+      }
+
+      // Sanitize inputs (for future server submission)
+      const sanitizedData = {
+        title: sanitizeInput(this.storyForm.title),
+        content: this.storyForm.type === 'text' ? sanitizeInput(this.storyForm.content) : '',
+        description: this.storyForm.description ? sanitizeInput(this.storyForm.description) : '',
+        type: this.storyForm.type,
+        anonymous: this.storyForm.anonymous,
+        termsAccepted: this.storyForm.termsAccepted,
+      }
+
+      // Log sanitized data for debugging
+      console.log('Sanitized form data:', sanitizedData)
+
       let message = 'Thank you for sharing your story! '
 
       if (this.storyForm.type === 'text') {
@@ -677,6 +759,7 @@ export default {
       this.coverImagePreview = null
       this.$refs.fileInput.value = ''
       this.$refs.imageInput.value = ''
+      this.formErrors = {}
     },
     showTerms() {
       this.showSuccess('Terms and conditions will be displayed in a modal or new page.')
@@ -686,8 +769,8 @@ export default {
         'Thank you for your interest! We will contact you shortly about contributing your expertise.',
       )
     },
-    viewResources() {
-      this.$router.push('/information-and-resources')
+    getSupport() {
+      this.$router.push('/support')
     },
     selectExpertise(type) {
       this.showSuccess(
@@ -699,10 +782,8 @@ export default {
         'Welcome to our community! Check your email for next steps and upcoming events.',
       )
     },
-    viewEvents() {
-      this.showSuccess(
-        'Event calendar will be available soon! Check back for upcoming workshops and support groups.',
-      )
+    aboutUs() {
+      this.$router.push('/about')
     },
     volunteerApplication() {
       this.showSuccess(
@@ -716,12 +797,6 @@ export default {
       this.showSuccess(
         'Thank you for becoming an advocate! We will send you advocacy resources and opportunities.',
       )
-    },
-    scrollToDonation() {
-      const donationCard = document.querySelector('.donation-card')
-      if (donationCard) {
-        donationCard.scrollIntoView({ behavior: 'smooth' })
-      }
     },
     learnMoreAboutDonations() {
       this.showSuccess('Donation information will be sent to your email!')

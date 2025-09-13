@@ -58,7 +58,7 @@
   font-weight: bold;
   color: var(--bs-primary);
   margin-bottom: 20px;
-  text-align: center;
+  text-align: left;
 }
 
 .section-description {
@@ -80,7 +80,7 @@
   font-size: 1.1rem;
   color: var(--bs-primary);
   display: flex;
-  align-items: center;
+  align-items: last baseline;
 }
 
 .benefits-list li i {
