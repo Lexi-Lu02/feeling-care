@@ -28,7 +28,7 @@
           <div class="col-lg-6">
             <div class="vision-card">
               <div class="card-icon">
-                <i class="fas fa-eye"></i>
+                <img src="/images/icon/vision.png" alt="Vision" class="card-icon-image" />
               </div>
               <h3>Our Vision</h3>
               <p>
@@ -40,7 +40,7 @@
           <div class="col-lg-6">
             <div class="goals-card">
               <div class="card-icon">
-                <i class="fas fa-bullseye"></i>
+                <img src="/images/icon/goal.png" alt="Goals" class="card-icon-image" />
               </div>
               <h3>Our Goals</h3>
               <ul>
@@ -246,7 +246,11 @@
             <div class="contact-info">
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-map-marker-alt"></i>
+                  <img
+                    src="/images/icon/placeholder.png"
+                    alt="Address"
+                    class="contact-icon-image"
+                  />
                 </div>
                 <div class="contact-details">
                   <h5>Address</h5>
@@ -259,7 +263,7 @@
               </div>
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-phone"></i>
+                  <img src="/images/icon/telephone.png" alt="Phone" class="contact-icon-image" />
                 </div>
                 <div class="contact-details">
                   <h5>Phone</h5>
@@ -272,7 +276,7 @@
               </div>
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-envelope"></i>
+                  <img src="/images/icon/email.png" alt="Email" class="contact-icon-image" />
                 </div>
                 <div class="contact-details">
                   <h5>Email</h5>
@@ -285,7 +289,7 @@
               </div>
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-clock"></i>
+                  <img src="/images/icon/schedule.png" alt="Hours" class="contact-icon-image" />
                 </div>
                 <div class="contact-details">
                   <h5>Hours</h5>

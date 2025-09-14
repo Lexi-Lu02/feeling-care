@@ -61,6 +61,7 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   height: 100%;
   transition: transform 0.3s ease;
+  position: relative;
 }
 
 .vision-card:hover,
@@ -69,14 +70,14 @@
 }
 
 .card-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   width: 80px;
   height: 80px;
-  background: var(--light-sage);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
 }
 
 .card-icon i {
@@ -84,10 +85,19 @@
   color: var(--bs-primary);
 }
 
+.card-icon-image {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  margin-bottom: 30px;
+  margin-top: 40px;
+}
+
 .vision-card h3,
 .goals-card h3 {
   color: var(--bs-primary);
   font-size: 1.5rem;
+  margin-top: 40px;
   margin-bottom: 20px;
 }
 
@@ -188,10 +198,11 @@
 .contact-section {
   padding: 80px 0;
   background-color: var(--pale-mint);
+  margin-top: 40px;
 }
 
 .contact-form {
-  background: white;
+  background: var(--pale-pink);
   padding: 40px;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -239,8 +250,6 @@
 .contact-icon {
   width: 50px;
   height: 50px;
-  background: var(--light-sage);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,6 +260,40 @@
 .contact-icon i {
   color: var(--bs-primary);
   font-size: 1.2rem;
+}
+
+.contact-icon-image {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+/* Custom checkbox styling */
+.form-check-input {
+  width: 18px !important;
+  height: 18px !important;
+  margin-top: 0 !important;
+  margin-right: 10px !important;
+  border: 2px solid var(--bs-primary) !important;
+  border-radius: 4px !important;
+  background-color: white !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(20, 29, 22, 0.25) !important;
+}
+
+.form-check-label {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.4 !important;
 }
 
 .contact-details h5 {
@@ -288,6 +331,23 @@
     margin-right: 0;
     margin-bottom: 15px;
   }
+
+  .contact-icon-image {
+    width: 28px;
+    height: 28px;
+  }
+
+  .card-icon {
+    top: 15px;
+    right: 15px;
+    width: 70px;
+    height: 70px;
+  }
+
+  .card-icon-image {
+    width: 60px;
+    height: 60px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -310,6 +370,23 @@
   .vision-card,
   .goals-card {
     padding: 30px 20px;
+  }
+
+  .card-icon {
+    top: 10px;
+    right: 10px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .card-icon-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .contact-icon-image {
+    width: 24px;
+    height: 24px;
   }
 
   .contact-form {

@@ -54,6 +54,10 @@
           <template v-if="currentUser">
             <div class="user-menu">
               <span class="user-info">{{ currentUser.username }} ({{ currentUser.role }})</span>
+              <router-link class="nav-link dashboard-link" to="/dashboard">
+                <i class="fas fa-tachometer-alt me-1"></i>
+                Dashboard
+              </router-link>
               <router-link
                 v-if="currentUser.role === 'admin'"
                 class="nav-link admin-link"

@@ -15,7 +15,7 @@ const defaultUsers = [
   {
     username: 'user',
     email: 'user@feelingcare.com',
-    password: 'User123',
+    password: 'User1234',
     role: ROLES.USER,
   },
 ]

@@ -98,21 +98,38 @@
   border-radius: 0 !important;
 }
 
+.card-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
 .card-icon-image {
   width: 100px;
   height: 100px;
   object-fit: contain;
-  margin: 0 auto 15px auto;
+  margin: 0 auto;
   display: block;
   background: none !important;
   border-radius: 0 !important;
 }
 
 /* Large icon for Get Support Today card */
+.large-card .card-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+  margin-top: 80px;
+}
+
 .card-icon-image.large-icon {
   width: 200px;
   height: 200px;
-  margin: 0 auto 40px auto;
+  margin: 0 auto;
   display: block;
 }
 
@@ -121,7 +138,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 600px; /* Match the large card height */
+  min-height: 600px;
 }
 
 .info-resources-wrapper {
@@ -179,24 +196,25 @@
 }
 
 .info-resources-card .card-title {
+  margin-top: 20px;
   margin-bottom: 15px;
   font-size: 1.2rem;
   text-align: left;
 }
 
 .info-resources-icon {
-  text-align: center;
+  text-align: right;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   height: 100%;
 }
 
 .info-resources-icon-image {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-  margin-top: 50px;
+  width: 150px !important;
+  height: 150px !important;
+  object-fit: contain !important;
+  margin: 0 auto !important;
   background: none !important;
   border-radius: 0 !important;
 }
@@ -251,13 +269,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 120px;
+  padding: 40px 20px;
 }
 
 .large-card .card-title {
   margin-bottom: 25px;
   font-size: 1.8rem;
-  margin-top: 60px;
+  margin-top: 220px;
 }
 
 .large-card .card-text {
@@ -299,12 +317,16 @@
   text-align: center;
 }
 
+.mini-card .card-title {
+  margin-top: 120px;
+}
+
 .mini-card .card-icon {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-top: 25px;
+  margin-top: 20px;
 }
 
 /* Responsive Data Icons */
@@ -324,6 +346,10 @@
     height: 50px;
   }
 
+  .card-icon {
+    margin-bottom: 12px;
+  }
+
   .card-icon-image {
     width: 90px;
     height: 90px;
@@ -336,10 +362,14 @@
     width: 100%;
   }
 
+  .large-card .card-icon {
+    margin-bottom: 15px;
+  }
+
   .card-icon-image.large-icon {
     width: 200px;
     height: 200px;
-    margin: 0 auto 40px auto;
+    margin: 0 auto;
     display: block;
   }
 
@@ -355,12 +385,12 @@
   }
 
   .large-card .card-body {
-    padding-top: 60px;
+    padding: 30px 15px;
   }
 
   .info-resources-icon-image {
-    width: 150px;
-    height: 150px;
+    width: 120px !important;
+    height: 120px !important;
   }
 
   .info-resources-card .card-title {
@@ -448,6 +478,10 @@
     height: 45px;
   }
 
+  .card-icon {
+    margin-bottom: 10px;
+  }
+
   .card-icon-image {
     width: 80px;
     height: 80px;
@@ -460,10 +494,14 @@
     width: 100%;
   }
 
+  .large-card .card-icon {
+    margin-bottom: 15px;
+  }
+
   .card-icon-image.large-icon {
     width: 180px;
     height: 180px;
-    margin: 0 auto 40px auto;
+    margin: 0 auto;
     display: block;
   }
 
@@ -479,12 +517,12 @@
   }
 
   .large-card .card-body {
-    padding-top: 50px;
+    padding: 25px 15px;
   }
 
   .info-resources-icon-image {
-    width: 130px;
-    height: 130px;
+    width: 100px !important;
+    height: 100px !important;
   }
 
   .info-resources-card .card-title {

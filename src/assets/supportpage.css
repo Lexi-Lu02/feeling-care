@@ -109,27 +109,27 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 0 auto 20px auto;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: relative;
 }
 
 .service-card .card-icon {
-  font-size: 3rem;
-  margin: 0 auto 15px auto;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+  font-size: 3rem !important;
+  margin: 0 auto 15px auto !important;
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+  background: none !important;
+  border-radius: 0 !important;
 }
 
 .service-card .card-icon-image {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
-  margin-top: 30px;
-  margin-bottom: 30px;
+  margin: 0 auto;
   display: block;
   background: none !important;
   border-radius: 0 !important;
@@ -154,11 +154,13 @@
 .service-card h3 {
   color: var(--bs-primary);
   margin-bottom: 15px;
+  margin-top: 80px;
 }
 
 .service-card p {
   color: var(--bs-primary);
   margin-bottom: 20px;
+  margin-top: 10px;
   line-height: 1.6;
 }
 
@@ -183,23 +185,27 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   height: 100%;
+  position: relative;
 }
 
 .guidance-card .card-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+  font-size: 3rem !important;
+  margin: 0 auto 15px auto !important;
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+  background: none !important;
+  border-radius: 0 !important;
 }
 
 .guidance-card .card-icon-image {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
-  margin: 0;
+  margin: 0 auto;
   display: block;
   background: none !important;
   border-radius: 0 !important;
@@ -208,33 +214,45 @@
 .guidance-card h3 {
   color: var(--bs-primary);
   margin-bottom: 15px;
+  margin-top: 80px;
 }
 
 .guidance-card p {
   color: var(--bs-primary);
   margin-bottom: 20px;
+  margin-top: 10px;
   line-height: 1.6;
 }
 
 /* Responsive Icon Styles */
 @media (max-width: 768px) {
   .service-card .card-icon-image {
-    width: 70px;
-    height: 70px;
-    margin: 0;
+    width: 55px;
+    height: 55px;
+    margin: 0 auto;
     display: block;
   }
 
   .guidance-card .card-icon-image {
-    width: 50px;
-    height: 50px;
-    margin: 0;
+    width: 45px;
+    height: 45px;
+    margin: 0 auto;
     display: block;
   }
 
   .hero-support-icon {
     width: 150px;
     height: 150px;
+  }
+
+  .service-card h3,
+  .guidance-card h3 {
+    margin-top: 30px;
+  }
+
+  .service-card p,
+  .guidance-card p {
+    margin-top: 8px;
   }
 
   .section-icon {
@@ -250,22 +268,32 @@
 
 @media (max-width: 576px) {
   .service-card .card-icon-image {
-    width: 60px;
-    height: 60px;
-    margin: 0;
+    width: 50px;
+    height: 50px;
+    margin: 0 auto;
     display: block;
   }
 
   .guidance-card .card-icon-image {
-    width: 45px;
-    height: 45px;
-    margin: 0;
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
     display: block;
   }
 
   .hero-support-icon {
     width: 120px;
     height: 120px;
+  }
+
+  .service-card h3,
+  .guidance-card h3 {
+    margin-top: 25px;
+  }
+
+  .service-card p,
+  .guidance-card p {
+    margin-top: 6px;
   }
 
   .section-icon {
