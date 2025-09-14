@@ -4,24 +4,16 @@
     <section class="hero-section">
       <div class="container">
         <div class="row align-items-center">
-          <div class="col-lg-6">
+          <div class="col-12 col-lg-8">
             <h1 class="hero-title">Information & Resources</h1>
             <p class="hero-description">
               Discover valuable mental health resources, educational content, and support materials
               to help you on your journey to better mental wellbeing.
             </p>
-            <div class="hero-buttons">
-              <router-link to="/auth" class="btn btn-primary">Login/Sign up</router-link>
-            </div>
           </div>
-          <div class="col-lg-6">
-            <div class="hero-content-placeholder">
-              <p>
-                Access comprehensive mental health information, expert insights, and practical tools
-                designed to support your mental wellbeing journey. Our curated collection of
-                resources includes articles, podcasts, videos, and interactive content to help you
-                understand, manage, and improve your mental health.
-              </p>
+          <div class="col-12 col-lg-4">
+            <div class="hero-icon">
+              <img src="/images/icon/resource.png" alt="Resources" class="hero-resource-icon" />
             </div>
           </div>
         </div>
@@ -32,7 +24,10 @@
     <section class="content-section">
       <div class="container">
         <div class="section-header">
-          <h2>Blogs</h2>
+          <div class="section-title-with-icon">
+            <img src="/images/icon/blogging.png" alt="Blogging" class="section-title-icon" />
+            <h2>Blogs</h2>
+          </div>
           <router-link to="/blogs" class="btn btn-outline-primary">See All →</router-link>
         </div>
         <div class="row">
@@ -58,7 +53,10 @@
     <section class="content-section">
       <div class="container">
         <div class="section-header">
-          <h2>Podcasts</h2>
+          <div class="section-title-with-icon">
+            <img src="/images/icon/multimedia.png" alt="Multimedia" class="section-title-icon" />
+            <h2>Podcasts</h2>
+          </div>
           <button class="btn btn-outline-primary">See All →</button>
         </div>
         <div class="row">
@@ -82,7 +80,10 @@
     <section class="content-section">
       <div class="container">
         <div class="section-header">
-          <h2>Videos</h2>
+          <div class="section-title-with-icon">
+            <img src="/images/icon/video.png" alt="Video" class="section-title-icon" />
+            <h2>Videos</h2>
+          </div>
           <button class="btn btn-outline-primary">See All →</button>
         </div>
         <div class="row">

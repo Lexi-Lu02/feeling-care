@@ -8,24 +8,40 @@
 .support-hero {
   padding: 60px 0;
   background: linear-gradient(135deg, var(--light-peach) 0%, var(--pale-mint) 100%);
-  text-align: right;
+  text-align: left;
   margin-bottom: 40px;
 }
 
+.support-hero .hero-icon {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.hero-support-icon {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(20, 29, 22, 0.3));
+}
+
 .support-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: bold;
   color: var(--bs-primary);
   margin-bottom: 20px;
+  text-shadow: 4px 4px 8px rgba(20, 29, 22, 0.5);
 }
 
 .support-subtitle {
   font-size: 1.2rem;
   color: var(--bs-primary);
   max-width: 600px;
-  margin: 0 0 0 auto;
+  margin: 0;
   line-height: 1.6;
-  text-align: right;
+  text-align: left;
 }
 
 /* Emergency Section */
@@ -91,13 +107,48 @@
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin: 0 auto 20px auto;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .service-card .card-icon {
   font-size: 3rem;
-  margin-bottom: 15px;
+  margin: 0 auto 15px auto;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.service-card .card-icon-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  display: block;
+  background: none !important;
+  border-radius: 0 !important;
+}
+
+.section-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.phone-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .service-card h3 {
@@ -137,6 +188,21 @@
 .guidance-card .card-icon {
   font-size: 3rem;
   margin-bottom: 15px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.guidance-card .card-icon-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  margin: 0;
+  display: block;
+  background: none !important;
+  border-radius: 0 !important;
 }
 
 .guidance-card h3 {
@@ -148,4 +214,67 @@
   color: var(--bs-primary);
   margin-bottom: 20px;
   line-height: 1.6;
+}
+
+/* Responsive Icon Styles */
+@media (max-width: 768px) {
+  .service-card .card-icon-image {
+    width: 70px;
+    height: 70px;
+    margin: 0;
+    display: block;
+  }
+
+  .guidance-card .card-icon-image {
+    width: 50px;
+    height: 50px;
+    margin: 0;
+    display: block;
+  }
+
+  .hero-support-icon {
+    width: 150px;
+    height: 150px;
+  }
+
+  .section-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .phone-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 576px) {
+  .service-card .card-icon-image {
+    width: 60px;
+    height: 60px;
+    margin: 0;
+    display: block;
+  }
+
+  .guidance-card .card-icon-image {
+    width: 45px;
+    height: 45px;
+    margin: 0;
+    display: block;
+  }
+
+  .hero-support-icon {
+    width: 120px;
+    height: 120px;
+  }
+
+  .section-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .phone-icon {
+    width: 16px;
+    height: 16px;
+  }
 }

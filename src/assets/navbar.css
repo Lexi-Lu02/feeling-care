@@ -12,41 +12,36 @@
   box-shadow: none !important;
 }
 
-/* Logo placeholder */
-.logo-placeholder {
-  width: 60px;
-  height: 40px;
-  border: 2px solid var(--bs-primary);
+/* Logo container */
+.logo-container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
   margin-right: 20px;
   flex-shrink: 0;
 }
 
-.logo-placeholder::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 40%,
-    var(--bs-primary) 40%,
-    var(--bs-primary) 60%,
-    transparent 60%
-  );
-  opacity: 0.3;
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 10px;
 }
 
-.logo-placeholder span {
+.navbar-brand:hover {
+  text-decoration: none;
+}
+
+.logo-image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.logo-text {
   color: var(--bs-primary);
-  font-size: 12px;
+  font-size: 1.2rem;
   font-weight: bold;
-  z-index: 1;
+  font-family: Tahoma, sans-serif;
 }
 
 /* Navigation links */
@@ -98,9 +93,12 @@
 
 .search-icon {
   position: absolute;
-  left: 10px;
-  color: var(--bs-primary);
-  font-size: 14px;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .search-input {
@@ -145,4 +143,41 @@
 
 .admin-link:hover {
   color: var(--dark-green) !important;
+}
+
+/* Responsive Logo Styles */
+@media (max-width: 768px) {
+  .logo-container {
+    margin-right: 10px;
+  }
+
+  .logo-image {
+    width: 35px;
+    height: 35px;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .search-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .logo-text {
+    display: none; /* Hide text on very small screens */
+  }
+
+  .logo-image {
+    width: 32px;
+    height: 32px;
+  }
+
+  .search-icon {
+    width: 12px;
+    height: 12px;
+  }
 }

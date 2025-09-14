@@ -12,6 +12,21 @@
   margin-bottom: 40px;
 }
 
+.hero-section .hero-icon {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.hero-handshake-icon {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(20, 29, 22, 0.3));
+}
+
 .hero-title {
   font-size: 3.5rem;
   font-weight: bold;
@@ -572,6 +587,11 @@
     font-size: 1.1rem;
   }
 
+  .hero-handshake-icon {
+    width: 150px;
+    height: 150px;
+  }
+
   .section-container {
     padding: 60px 0;
   }
@@ -612,6 +632,11 @@
 
   .section-icon {
     font-size: 3rem;
+  }
+
+  .hero-handshake-icon {
+    width: 120px;
+    height: 120px;
   }
 
   .donation-amounts {

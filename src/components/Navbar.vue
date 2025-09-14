@@ -4,9 +4,12 @@
     style="position: relative; z-index: 1000"
   >
     <div class="container-fluid">
-      <!-- Logo Placeholder -->
-      <div class="logo-placeholder">
-        <span>Logo</span>
+      <!-- Logo -->
+      <div class="logo-container">
+        <router-link to="/" class="navbar-brand">
+          <img src="/images/icon/mental-health.png" alt="Feeling Care Logo" class="logo-image" />
+          <span class="logo-text">Feeling Care</span>
+        </router-link>
       </div>
 
       <!-- Mobile Toggle Button -->
@@ -45,7 +48,7 @@
         <!-- Search Bar and Login -->
         <div class="navbar-right">
           <div class="search-container">
-            <i class="search-icon">🔍</i>
+            <img src="/images/icon/loupe.png" alt="Search" class="search-icon" />
             <input type="text" class="search-input" placeholder="Search" />
           </div>
           <template v-if="currentUser">

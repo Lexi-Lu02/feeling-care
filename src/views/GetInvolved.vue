@@ -3,13 +3,18 @@
     <!-- Hero Section -->
     <div class="hero-section">
       <div class="container">
-        <div class="row">
-          <div class="col-lg-8">
+        <div class="row align-items-center">
+          <div class="col-12 col-lg-8">
             <h1 class="hero-title">Get Involved</h1>
             <p class="hero-description">
               Join us in making a difference in mental health awareness and support. There are many
               ways you can contribute to our mission and help create a more compassionate community.
             </p>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="hero-icon">
+              <img src="/images/icon/handshake.png" alt="Handshake" class="hero-handshake-icon" />
+            </div>
           </div>
         </div>
       </div>

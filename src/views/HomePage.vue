@@ -3,13 +3,26 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">Feeling Care is Here to Help</h1>
-          <p class="hero-description">
-            Your trusted mental health companion for youth. We provide support, resources, and a
-            safe space for young people to find help when they need it most.
-          </p>
-          <router-link to="/auth" class="btn btn-primary hero-btn">Login/Sign up</router-link>
+        <div class="row align-items-center">
+          <div class="col-lg-7">
+            <div class="hero-content">
+              <h1 class="hero-title">Feeling Care is Here to Help</h1>
+              <p class="hero-description">
+                Your trusted mental health companion for youth. We provide support, resources, and a
+                safe space for young people to find help when they need it most.
+              </p>
+              <router-link to="/auth" class="btn btn-primary hero-btn">Login/Sign up</router-link>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="hero-icon">
+              <img
+                src="/images/icon/mental-health.png"
+                alt="Mental Health Support"
+                class="hero-icon-image"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -20,21 +33,27 @@
         <div class="row">
           <div class="col-12 col-sm-6 col-lg-4">
             <div class="data-card">
-              <div class="data-icon">📊</div>
+              <div class="data-icon">
+                <img src="/images/icon/analytics.png" alt="Analytics" class="data-icon-image" />
+              </div>
               <div class="data-number">1,234</div>
               <p class="data-label">Youth Helped</p>
             </div>
           </div>
           <div class="col-12 col-sm-6 col-lg-4">
             <div class="data-card">
-              <div class="data-icon">👥</div>
+              <div class="data-icon">
+                <img src="/images/icon/group.png" alt="Group" class="data-icon-image" />
+              </div>
               <div class="data-number">567</div>
               <p class="data-label">Active Volunteers</p>
             </div>
           </div>
           <div class="col-12 col-sm-6 col-lg-4">
             <div class="data-card">
-              <div class="data-icon">🏥</div>
+              <div class="data-icon">
+                <img src="/images/icon/hospital.png" alt="Hospital" class="data-icon-image" />
+              </div>
               <div class="data-number">89</div>
               <p class="data-label">Partner Organizations</p>
             </div>
@@ -48,10 +67,16 @@
       <div class="container">
         <div class="row">
           <!-- Large Card -->
-          <div class="col-12 col-lg-8">
+          <div class="col-12 col-lg-6">
             <div class="card large-card">
               <div class="card-body">
-                <div class="card-icon">💙</div>
+                <div class="card-icon">
+                  <img
+                    src="/images/icon/support.png"
+                    alt="Support"
+                    class="card-icon-image large-icon"
+                  />
+                </div>
                 <h3 class="card-title">Get Support Today</h3>
                 <p class="card-text">
                   Connect with trained counselors and mental health professionals who understand
@@ -63,32 +88,63 @@
           </div>
 
           <!-- Small Cards -->
-          <div class="col-12 col-lg-4">
-            <div class="row">
-              <div class="col-12 mb-3">
-                <div class="card small-card">
+          <div class="col-12 col-lg-6">
+            <div class="right-column-wrapper">
+              <div class="info-resources-wrapper">
+                <div class="card small-card info-resources-card">
                   <div class="card-body">
-                    <div class="card-icon">📚</div>
-                    <h4 class="card-title">Information & Resources</h4>
-                    <router-link to="/resources" class="btn btn-primary">Learn More</router-link>
+                    <div class="row align-items-center">
+                      <div class="col-8">
+                        <h4 class="card-title">Information & Resources</h4>
+                        <router-link to="/resources" class="btn btn-primary"
+                          >Learn More</router-link
+                        >
+                      </div>
+                      <div class="col-4">
+                        <div class="card-icon info-resources-icon">
+                          <img
+                            src="/images/icon/resource.png"
+                            alt="Resources"
+                            class="card-icon-image info-resources-icon-image"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="col-6 col-sm-6">
-                <div class="card mini-card">
-                  <div class="card-body">
-                    <div class="card-icon">🤝</div>
-                    <h5 class="card-title">Get Involved</h5>
-                    <router-link to="/involved" class="btn btn-primary">Join Us</router-link>
+              <div class="middle-spacer"></div>
+              <div class="bottom-cards-wrapper">
+                <div class="row">
+                  <div class="col-6">
+                    <div class="card mini-card">
+                      <div class="card-body">
+                        <div class="card-icon">
+                          <img
+                            src="/images/icon/handshake.png"
+                            alt="Handshake"
+                            class="card-icon-image"
+                          />
+                        </div>
+                        <h5 class="card-title">Get Involved</h5>
+                        <router-link to="/involved" class="btn btn-primary">Join Us</router-link>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div class="col-6 col-sm-6">
-                <div class="card mini-card">
-                  <div class="card-body">
-                    <div class="card-icon">ℹ️</div>
-                    <h5 class="card-title">About Us</h5>
-                    <router-link to="/about" class="btn btn-primary">Learn More</router-link>
+                  <div class="col-6">
+                    <div class="card mini-card">
+                      <div class="card-body">
+                        <div class="card-icon">
+                          <img
+                            src="/images/icon/information.png"
+                            alt="Information"
+                            class="card-icon-image"
+                          />
+                        </div>
+                        <h5 class="card-title">About Us</h5>
+                        <router-link to="/about" class="btn btn-primary">Learn More</router-link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
