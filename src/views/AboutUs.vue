@@ -1,3 +1,223 @@
+<script>
+import { ref } from 'vue'
+import { sanitizeInput, rateLimiter } from '../utils/security.js'
+import {
+  sendEmailWithAttachment,
+  fileToBase64,
+  isValidEmail,
+  getMimeType,
+} from '../services/emailService'
+
+export default {
+  name: 'AboutUs',
+  setup() {
+    const emailForm = ref({
+      to: '',
+      from: '',
+      cc: '',
+      bcc: '',
+      subject: '',
+      message: '',
+      isHtml: true,
+      privacyConsent: false,
+    })
+
+    const selectedFiles = ref([])
+    const isSubmitting = ref(false)
+    const submitStatus = ref(null)
+    const showPrivacyModal = ref(false)
+
+    return {
+      emailForm,
+      selectedFiles,
+      isSubmitting,
+      submitStatus,
+      showPrivacyModal,
+    }
+  },
+  computed: {
+    isFormValid() {
+      return (
+        this.emailForm.to.trim() &&
+        this.emailForm.from.trim() &&
+        this.emailForm.subject.trim() &&
+        this.emailForm.message.trim() &&
+        this.emailForm.privacyConsent
+      )
+    },
+  },
+  methods: {
+    // Handle file selection
+    handleFileChange(event) {
+      const files = Array.from(event.target.files)
+      this.selectedFiles = [...this.selectedFiles, ...files]
+    },
+
+    // Remove file from selection
+    removeFile(index) {
+      this.selectedFiles.splice(index, 1)
+    },
+
+    // Format file size
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes'
+      const k = 1024
+      const sizes = ['Bytes', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    },
+
+    // Insert signature
+    insertSignature() {
+      const signature = `\n\nBest regards,\n${this.emailForm.from.split('@')[0]}`
+      this.emailForm.message += signature
+    },
+
+    // Clear message
+    clearMessage() {
+      this.emailForm.message = ''
+    },
+
+    // Clear entire form
+    clearForm() {
+      this.emailForm = {
+        to: '',
+        from: '',
+        cc: '',
+        bcc: '',
+        subject: '',
+        message: '',
+        isHtml: true,
+        privacyConsent: false,
+      }
+      this.selectedFiles = []
+      this.submitStatus = null
+    },
+
+    // Save draft (placeholder functionality)
+    saveDraft() {
+      // In a real application, this would save to localStorage or backend
+      localStorage.setItem('emailDraft', JSON.stringify(this.emailForm))
+      this.submitStatus = { success: true, message: 'Draft saved successfully!' }
+      setTimeout(() => {
+        this.submitStatus = null
+      }, 3000)
+    },
+
+    // Validate email list
+    validateEmailList(emailString) {
+      if (!emailString.trim()) return true
+      const emails = emailString.split(',').map((email) => email.trim())
+      return emails.every((email) => isValidEmail(email))
+    },
+
+    async submitEmailForm() {
+      // Rate limiting check
+      const userIdentifier = 'email-form-' + this.emailForm.from
+      if (!rateLimiter.isAllowed(userIdentifier)) {
+        this.submitStatus = {
+          success: false,
+          message: 'Too many requests. Please wait before submitting again.',
+        }
+        return
+      }
+
+      // Validation
+      if (!isValidEmail(this.emailForm.to)) {
+        this.submitStatus = {
+          success: false,
+          message: 'Please enter a valid recipient email address.',
+        }
+        return
+      }
+
+      if (!isValidEmail(this.emailForm.from)) {
+        this.submitStatus = {
+          success: false,
+          message: 'Please enter a valid sender email address.',
+        }
+        return
+      }
+
+      // Validate CC emails
+      if (this.emailForm.cc && !this.validateEmailList(this.emailForm.cc)) {
+        this.submitStatus = { success: false, message: 'Please enter valid CC email addresses.' }
+        return
+      }
+
+      // Validate BCC emails
+      if (this.emailForm.bcc && !this.validateEmailList(this.emailForm.bcc)) {
+        this.submitStatus = { success: false, message: 'Please enter valid BCC email addresses.' }
+        return
+      }
+
+      this.isSubmitting = true
+      this.submitStatus = null
+
+      try {
+        // Sanitize form data
+        const sanitizedData = {
+          to: sanitizeInput(this.emailForm.to),
+          from: sanitizeInput(this.emailForm.from),
+          cc: sanitizeInput(this.emailForm.cc),
+          bcc: sanitizeInput(this.emailForm.bcc),
+          subject: sanitizeInput(this.emailForm.subject),
+          message: sanitizeInput(this.emailForm.message),
+          isHtml: this.emailForm.isHtml,
+          privacyConsent: this.emailForm.privacyConsent,
+        }
+
+        // Process attachments
+        const attachments = []
+        for (const file of this.selectedFiles) {
+          const base64Content = await fileToBase64(file)
+          attachments.push({
+            filename: file.name,
+            content: base64Content,
+            type: getMimeType(file.name),
+            disposition: 'attachment',
+          })
+        }
+
+        // Create email content
+        const emailSubject = sanitizedData.subject
+
+        const emailText = sanitizedData.message
+
+        const emailHtml = sanitizedData.isHtml
+          ? `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">${sanitizedData.message.replace(/\n/g, '<br>')}</div>`
+          : sanitizedData.message
+
+        // Send email
+        const result = await sendEmailWithAttachment(
+          sanitizedData.to,
+          sanitizedData.from,
+          emailSubject,
+          emailText,
+          emailHtml,
+          attachments,
+        )
+
+        this.submitStatus = result
+
+        // Clear form if successful
+        if (result.success) {
+          this.clearForm()
+        }
+      } catch (error) {
+        console.error('Error submitting contact form:', error)
+        this.submitStatus = {
+          success: false,
+          message: 'An unexpected error occurred. Please try again.',
+        }
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+  },
+}
+</script>
+
 <template>
   <div class="about-us-page">
     <!-- Hero Section -->
@@ -574,223 +794,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import { ref } from 'vue'
-import { sanitizeInput, rateLimiter } from '../utils/security.js'
-import {
-  sendEmailWithAttachment,
-  fileToBase64,
-  isValidEmail,
-  getMimeType,
-} from '../services/emailService'
-
-export default {
-  name: 'AboutUs',
-  setup() {
-    const emailForm = ref({
-      to: '',
-      from: '',
-      cc: '',
-      bcc: '',
-      subject: '',
-      message: '',
-      isHtml: true,
-      privacyConsent: false,
-    })
-
-    const selectedFiles = ref([])
-    const isSubmitting = ref(false)
-    const submitStatus = ref(null)
-    const showPrivacyModal = ref(false)
-
-    return {
-      emailForm,
-      selectedFiles,
-      isSubmitting,
-      submitStatus,
-      showPrivacyModal,
-    }
-  },
-  computed: {
-    isFormValid() {
-      return (
-        this.emailForm.to.trim() &&
-        this.emailForm.from.trim() &&
-        this.emailForm.subject.trim() &&
-        this.emailForm.message.trim() &&
-        this.emailForm.privacyConsent
-      )
-    },
-  },
-  methods: {
-    // Handle file selection
-    handleFileChange(event) {
-      const files = Array.from(event.target.files)
-      this.selectedFiles = [...this.selectedFiles, ...files]
-    },
-
-    // Remove file from selection
-    removeFile(index) {
-      this.selectedFiles.splice(index, 1)
-    },
-
-    // Format file size
-    formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes'
-      const k = 1024
-      const sizes = ['Bytes', 'KB', 'MB', 'GB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-    },
-
-    // Insert signature
-    insertSignature() {
-      const signature = `\n\nBest regards,\n${this.emailForm.from.split('@')[0]}`
-      this.emailForm.message += signature
-    },
-
-    // Clear message
-    clearMessage() {
-      this.emailForm.message = ''
-    },
-
-    // Clear entire form
-    clearForm() {
-      this.emailForm = {
-        to: '',
-        from: '',
-        cc: '',
-        bcc: '',
-        subject: '',
-        message: '',
-        isHtml: true,
-        privacyConsent: false,
-      }
-      this.selectedFiles = []
-      this.submitStatus = null
-    },
-
-    // Save draft (placeholder functionality)
-    saveDraft() {
-      // In a real application, this would save to localStorage or backend
-      localStorage.setItem('emailDraft', JSON.stringify(this.emailForm))
-      this.submitStatus = { success: true, message: 'Draft saved successfully!' }
-      setTimeout(() => {
-        this.submitStatus = null
-      }, 3000)
-    },
-
-    // Validate email list
-    validateEmailList(emailString) {
-      if (!emailString.trim()) return true
-      const emails = emailString.split(',').map((email) => email.trim())
-      return emails.every((email) => isValidEmail(email))
-    },
-
-    async submitEmailForm() {
-      // Rate limiting check
-      const userIdentifier = 'email-form-' + this.emailForm.from
-      if (!rateLimiter.isAllowed(userIdentifier)) {
-        this.submitStatus = {
-          success: false,
-          message: 'Too many requests. Please wait before submitting again.',
-        }
-        return
-      }
-
-      // Validation
-      if (!isValidEmail(this.emailForm.to)) {
-        this.submitStatus = {
-          success: false,
-          message: 'Please enter a valid recipient email address.',
-        }
-        return
-      }
-
-      if (!isValidEmail(this.emailForm.from)) {
-        this.submitStatus = {
-          success: false,
-          message: 'Please enter a valid sender email address.',
-        }
-        return
-      }
-
-      // Validate CC emails
-      if (this.emailForm.cc && !this.validateEmailList(this.emailForm.cc)) {
-        this.submitStatus = { success: false, message: 'Please enter valid CC email addresses.' }
-        return
-      }
-
-      // Validate BCC emails
-      if (this.emailForm.bcc && !this.validateEmailList(this.emailForm.bcc)) {
-        this.submitStatus = { success: false, message: 'Please enter valid BCC email addresses.' }
-        return
-      }
-
-      this.isSubmitting = true
-      this.submitStatus = null
-
-      try {
-        // Sanitize form data
-        const sanitizedData = {
-          to: sanitizeInput(this.emailForm.to),
-          from: sanitizeInput(this.emailForm.from),
-          cc: sanitizeInput(this.emailForm.cc),
-          bcc: sanitizeInput(this.emailForm.bcc),
-          subject: sanitizeInput(this.emailForm.subject),
-          message: sanitizeInput(this.emailForm.message),
-          isHtml: this.emailForm.isHtml,
-          privacyConsent: this.emailForm.privacyConsent,
-        }
-
-        // Process attachments
-        const attachments = []
-        for (const file of this.selectedFiles) {
-          const base64Content = await fileToBase64(file)
-          attachments.push({
-            filename: file.name,
-            content: base64Content,
-            type: getMimeType(file.name),
-            disposition: 'attachment',
-          })
-        }
-
-        // Create email content
-        const emailSubject = sanitizedData.subject
-
-        const emailText = sanitizedData.message
-
-        const emailHtml = sanitizedData.isHtml
-          ? `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">${sanitizedData.message.replace(/\n/g, '<br>')}</div>`
-          : sanitizedData.message
-
-        // Send email
-        const result = await sendEmailWithAttachment(
-          sanitizedData.to,
-          sanitizedData.from,
-          emailSubject,
-          emailText,
-          emailHtml,
-          attachments,
-        )
-
-        this.submitStatus = result
-
-        // Clear form if successful
-        if (result.success) {
-          this.clearForm()
-        }
-      } catch (error) {
-        console.error('Error submitting contact form:', error)
-        this.submitStatus = {
-          success: false,
-          message: 'An unexpected error occurred. Please try again.',
-        }
-      } finally {
-        this.isSubmitting = false
-      }
-    },
-  },
-}
-</script>
