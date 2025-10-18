@@ -1,6 +1,6 @@
 export async function onRequestPost(context) {
   try {
-    const SENDGRID_API_KEY = context.env.SENDGRID_API_KEY // stored securely in Cloudflare env vars
+    const SENDGRID_API_KEY = context.env.FeelingCareKey
     const data = await context.request.json()
 
     // Prepare email payload
