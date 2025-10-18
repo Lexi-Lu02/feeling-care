@@ -13,6 +13,21 @@
   margin-bottom: 30px;
 }
 
+.hero-section .hero-icon {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.hero-group-icon {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(20, 29, 22, 0.3));
+}
+
 .hero-title {
   font-size: 3rem;
   font-weight: bold;
@@ -310,6 +325,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .hero-group-icon {
+    width: 180px;
+    height: 180px;
+  }
+
   .hero-title {
     font-size: 2.5rem;
   }
@@ -355,6 +375,11 @@
     padding: 60px 0;
   }
 
+  .hero-group-icon {
+    width: 150px;
+    height: 150px;
+  }
+
   .hero-title {
     font-size: 2rem;
   }
@@ -395,5 +420,653 @@
 
   .news-content {
     padding: 20px;
+  }
+}
+
+/* File Upload Styles */
+.file-upload-area {
+  border: 2px dashed var(--medium-sage);
+  border-radius: 8px;
+  padding: 25px;
+  text-align: center;
+  background: var(--pale-green);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-upload-area:hover {
+  border-color: var(--bs-primary);
+  background: var(--light-sage);
+  border-style: solid;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-upload-label {
+  display: block;
+  cursor: pointer;
+  color: var(--bs-primary);
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.file-help-text {
+  color: var(--medium-sage);
+  font-size: 0.875rem;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.selected-files {
+  margin-top: 15px;
+  padding: 15px;
+  background: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--light-sage);
+}
+
+.selected-files h6 {
+  color: var(--bs-primary);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: var(--pale-mint);
+  border-radius: 6px;
+  border: 1px solid var(--light-sage);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.file-name {
+  color: var(--bs-primary);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.file-size {
+  color: var(--medium-sage);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.status-message.success {
+  background: var(--pale-mint);
+  color: var(--success-green);
+  border: 1px solid var(--light-sage);
+}
+
+.status-message.error {
+  background: var(--muted-rose);
+  color: var(--error-red);
+  border: 1px solid var(--medium-sage);
+}
+
+/* Email Composer Styles */
+.email-composer {
+  background: var(--pale-pink);
+  border-radius: 15px;
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.email-header {
+  background: transparent;
+  color: var(--bs-primary);
+  padding: 30px 25px 15px 25px;
+  text-align: center;
+  border-bottom: none;
+}
+
+.email-header h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--bs-primary);
+}
+
+.email-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.email-actions .btn {
+  background: transparent;
+  border: 1px solid var(--light-sage);
+  color: var(--bs-primary);
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  padding: 4px 8px;
+}
+
+.email-actions .btn:hover {
+  background: var(--light-sage);
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+
+.email-field {
+  padding: 12px 25px;
+  border-bottom: none;
+  background: var(--pale-pink);
+}
+
+.email-fields-row {
+  display: flex;
+  gap: 20px;
+  padding: 0 25px;
+  background: var(--pale-pink);
+}
+
+.email-fields-row .email-field {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.email-field:last-of-type {
+  border-bottom: none;
+}
+
+.email-label {
+  display: block;
+  font-weight: 600;
+  color: var(--bs-primary);
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.email-input {
+  border: 2px solid var(--light-sage);
+  border-radius: 8px;
+  background: var(--white);
+  padding: 10px 15px;
+  font-size: 1rem;
+  color: var(--bs-primary);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.email-input:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(101, 113, 102, 0.1);
+  background: var(--white);
+  outline: none;
+}
+
+.email-input::placeholder {
+  color: var(--medium-sage);
+  opacity: 0.8;
+}
+
+/* Message Toolbar */
+.message-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  margin-bottom: 0;
+  padding: 10px 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.format-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--medium-sage);
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--bs-primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.format-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bs-primary);
+}
+
+.message-toolbar .btn {
+  font-size: 0.875rem;
+  padding: 4px 8px;
+}
+
+.character-count {
+  color: var(--medium-sage);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.message-textarea {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 120px;
+  border: 2px solid var(--light-sage);
+  border-radius: 8px;
+  padding: 15px;
+  background: var(--white);
+  color: var(--bs-primary);
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.message-textarea:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(101, 113, 102, 0.1);
+  background: var(--white);
+  outline: none;
+}
+
+.message-textarea::placeholder {
+  color: var(--medium-sage);
+  opacity: 0.8;
+}
+
+/* Email Actions Bottom */
+.email-actions-bottom {
+  padding: 20px 25px;
+  background: transparent;
+  border-top: none;
+  text-align: center;
+}
+
+.btn-send {
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-send:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Privacy Policy Link */
+.privacy-link {
+  color: var(--bs-primary);
+  text-decoration: underline;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin: 0 6px;
+}
+
+.privacy-link:hover {
+  color: var(--medium-sage);
+  text-decoration: none;
+}
+
+/* Privacy Policy Modal */
+.privacy-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.privacy-modal {
+  background: var(--pale-pink);
+  border-radius: 15px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.privacy-modal-header {
+  background: var(--bs-primary);
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--medium-sage);
+}
+
+.privacy-modal-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.privacy-modal-content {
+  padding: 25px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.privacy-modal-content .privacy-section {
+  margin-bottom: 25px;
+}
+
+.privacy-modal-content h4 {
+  color: var(--bs-primary);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--light-sage);
+}
+
+.privacy-modal-content h5 {
+  color: var(--bs-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 20px 0 10px 0;
+}
+
+.privacy-modal-content p {
+  color: var(--bs-primary);
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.privacy-modal-content ul {
+  margin: 12px 0;
+  padding-left: 20px;
+}
+
+.privacy-modal-content li {
+  color: var(--bs-primary);
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.privacy-modal-content strong {
+  color: var(--bs-primary);
+  font-weight: 600;
+}
+
+.privacy-modal-content .contact-info {
+  background: var(--pale-mint);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--light-sage);
+  margin: 15px 0;
+}
+
+.privacy-modal-content .contact-info p {
+  margin-bottom: 8px;
+}
+
+.privacy-modal-content .contact-info a {
+  color: var(--bs-primary);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.privacy-modal-content .contact-info a:hover {
+  color: var(--medium-sage);
+  text-decoration: none;
+}
+
+.privacy-modal-content .privacy-footer {
+  background: var(--light-sage);
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 25px;
+  border-left: 4px solid var(--bs-primary);
+}
+
+.privacy-modal-content .privacy-footer p {
+  margin: 0;
+  font-style: italic;
+  color: var(--bs-primary);
+  font-size: 0.9rem;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .privacy-modal-overlay {
+    padding: 10px;
+  }
+
+  .privacy-modal {
+    max-height: 95vh;
+  }
+
+  .privacy-modal-header {
+    padding: 15px 20px;
+  }
+
+  .privacy-modal-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .privacy-modal-content {
+    padding: 20px;
+  }
+
+  .privacy-modal-content h4 {
+    font-size: 1.2rem;
+  }
+
+  .privacy-modal-content h5 {
+    font-size: 1rem;
+  }
+
+  .privacy-modal-content p,
+  .privacy-modal-content li {
+    font-size: 0.9rem;
+  }
+
+  .email-fields-row {
+    flex-direction: column;
+    gap: 0;
+    padding: 0 20px;
+  }
+
+  .email-fields-row .email-field {
+    padding: 12px 0;
+  }
+}
+
+/* Enhanced form styling */
+.form-group label {
+  font-weight: 600;
+  color: var(--bs-primary);
+  margin-bottom: 8px;
+}
+
+.form-control {
+  border: 2px solid var(--light-mint);
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+  background: var(--pale-green);
+}
+
+.form-control::placeholder {
+  color: var(--medium-sage);
+  opacity: 0.8;
+}
+
+/* File upload enhancements */
+.file-upload-area {
+  position: relative;
+  overflow: hidden;
+}
+
+.file-upload-area:hover .file-upload-label {
+  color: var(--bs-primary);
+  transform: translateY(-2px);
+}
+
+.file-upload-label {
+  transition: all 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .email-header {
+    padding: 25px 20px 10px 20px;
+  }
+
+  .email-header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+
+  .email-actions {
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .email-actions .btn {
+    flex: 0 0 auto;
+  }
+
+  .message-toolbar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .toolbar-left {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .message-toolbar .btn {
+    width: 100%;
+  }
+
+  .character-count {
+    text-align: center;
+  }
+
+  .email-field {
+    padding: 10px 20px;
+  }
+
+  .email-actions-bottom {
+    padding: 15px 20px;
+    text-align: center;
+  }
+
+  .btn-send {
+    width: 100%;
   }
 }

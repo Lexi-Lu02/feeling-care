@@ -3,14 +3,19 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container">
-        <div class="row">
-          <div class="col-lg-8">
+        <div class="row align-items-center">
+          <div class="col-12 col-lg-8">
             <h1 class="hero-title">About Feeling Care</h1>
             <p class="hero-description">
               We are dedicated to providing comprehensive mental health support, resources, and
               community connections for individuals and families navigating mental health
               challenges.
             </p>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="hero-icon">
+              <img src="/images/icon/group.png" alt="Group" class="hero-group-icon" />
+            </div>
           </div>
         </div>
       </div>
@@ -138,107 +143,228 @@
         </div>
         <div class="row">
           <div class="col-lg-8">
-            <div class="contact-form">
-              <form @submit.prevent="submitContactForm">
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="firstName">First Name *</label>
-                      <input
-                        type="text"
-                        id="firstName"
-                        v-model="contactForm.firstName"
-                        class="form-control"
-                        required
-                        maxlength="50"
-                      />
-                    </div>
+            <div class="email-composer">
+              <div class="email-header">
+                <h3><i class="fas fa-envelope me-2"></i>Compose Email</h3>
+                <div class="email-actions">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="saveDraft">
+                    <i class="fas fa-save me-1"></i>Save Draft
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" @click="clearForm">
+                    <i class="fas fa-eraser me-1"></i>Clear
+                  </button>
+                </div>
+              </div>
+
+              <form @submit.prevent="submitEmailForm">
+                <!-- To and From Fields Row -->
+                <div class="email-fields-row">
+                  <div class="email-field">
+                    <label for="to" class="email-label">To *</label>
+                    <input
+                      type="email"
+                      id="to"
+                      v-model="emailForm.to"
+                      class="form-control email-input"
+                      required
+                      placeholder="recipient@example.com"
+                      multiple
+                    />
                   </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="lastName">Last Name *</label>
-                      <input
-                        type="text"
-                        id="lastName"
-                        v-model="contactForm.lastName"
-                        class="form-control"
-                        required
-                        maxlength="50"
-                      />
-                    </div>
+
+                  <div class="email-field">
+                    <label for="from" class="email-label">From *</label>
+                    <input
+                      type="email"
+                      id="from"
+                      v-model="emailForm.from"
+                      class="form-control email-input"
+                      required
+                      placeholder="your-email@example.com"
+                    />
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="email">Email Address *</label>
-                      <input
-                        type="email"
-                        id="email"
-                        v-model="contactForm.email"
-                        class="form-control"
-                        required
-                        maxlength="100"
-                      />
-                    </div>
+
+                <!-- CC and BCC Fields Row -->
+                <div class="email-fields-row">
+                  <div class="email-field">
+                    <label for="cc" class="email-label">CC</label>
+                    <input
+                      type="email"
+                      id="cc"
+                      v-model="emailForm.cc"
+                      class="form-control email-input"
+                      placeholder="cc@example.com (optional)"
+                      multiple
+                    />
                   </div>
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="phone">Phone Number</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        v-model="contactForm.phone"
-                        class="form-control"
-                        maxlength="20"
-                      />
-                    </div>
+
+                  <div class="email-field">
+                    <label for="bcc" class="email-label">BCC</label>
+                    <input
+                      type="email"
+                      id="bcc"
+                      v-model="emailForm.bcc"
+                      class="form-control email-input"
+                      placeholder="bcc@example.com (optional)"
+                      multiple
+                    />
                   </div>
                 </div>
-                <div class="form-group">
-                  <label for="subject">Subject *</label>
-                  <select id="subject" v-model="contactForm.subject" class="form-control" required>
-                    <option value="">Select a subject</option>
-                    <option value="general">General Inquiry</option>
-                    <option value="support">Support Request</option>
-                    <option value="volunteer">Volunteer Opportunity</option>
-                    <option value="partnership">Partnership Inquiry</option>
-                    <option value="media">Media Inquiry</option>
-                    <option value="other">Other</option>
-                  </select>
+
+                <!-- Subject Field -->
+                <div class="email-field">
+                  <label for="subject" class="email-label">Subject *</label>
+                  <input
+                    type="text"
+                    id="subject"
+                    v-model="emailForm.subject"
+                    class="form-control email-input"
+                    required
+                    maxlength="200"
+                    placeholder="Enter email subject..."
+                  />
                 </div>
-                <div class="form-group">
-                  <label for="message">Message *</label>
+                <!-- Message Field -->
+                <div class="email-field">
+                  <label class="email-label">Message *</label>
                   <textarea
                     id="message"
-                    v-model="contactForm.message"
-                    class="form-control"
-                    rows="5"
+                    v-model="emailForm.message"
+                    class="form-control message-textarea"
+                    rows="12"
                     required
-                    maxlength="1000"
-                    placeholder="Please provide details about your inquiry..."
+                    maxlength="5000"
+                    placeholder="Compose your message here..."
                   ></textarea>
-                  <small class="form-text text-muted"
-                    >{{ contactForm.message.length }}/1000 characters</small
-                  >
+                  <div class="message-toolbar">
+                    <div class="toolbar-left">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="insertSignature"
+                      >
+                        <i class="fas fa-signature me-1"></i>Signature
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="clearMessage"
+                      >
+                        <i class="fas fa-eraser me-1"></i>Clear
+                      </button>
+                      <div class="format-toggle">
+                        <label class="switch">
+                          <input type="checkbox" v-model="emailForm.isHtml" />
+                          <span class="slider round"></span>
+                        </label>
+                        <span class="format-label">{{
+                          emailForm.isHtml ? 'HTML' : 'Plain Text'
+                        }}</span>
+                      </div>
+                    </div>
+                    <div class="toolbar-right">
+                      <span class="character-count"
+                        >{{ emailForm.message.length }}/5000 characters</span
+                      >
+                    </div>
+                  </div>
                 </div>
-                <div class="form-group">
+                <!-- File Attachments -->
+                <div class="email-field">
+                  <label class="email-label">Attachments</label>
+                  <div class="file-upload-area">
+                    <input
+                      type="file"
+                      id="fileInput"
+                      multiple
+                      @change="handleFileChange"
+                      class="file-input"
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar"
+                    />
+                    <label for="fileInput" class="file-upload-label">
+                      <i class="fas fa-cloud-upload-alt me-2"></i>
+                      Choose Files or Drag & Drop
+                    </label>
+                    <small class="file-help-text">
+                      Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG, GIF, ZIP, RAR (Max 30MB per
+                      file)
+                    </small>
+                  </div>
+
+                  <!-- Selected Files List -->
+                  <div v-if="selectedFiles.length > 0" class="selected-files">
+                    <h6>Selected Files:</h6>
+                    <div class="file-list">
+                      <div v-for="(file, index) in selectedFiles" :key="index" class="file-item">
+                        <div class="file-info">
+                          <i class="fas fa-file me-2"></i>
+                          <span class="file-name">{{ file.name }}</span>
+                          <span class="file-size">({{ formatFileSize(file.size) }})</span>
+                        </div>
+                        <button
+                          type="button"
+                          @click="removeFile(index)"
+                          class="btn btn-sm btn-outline-danger"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Privacy Consent -->
+                <div class="email-field">
                   <div class="form-check">
                     <input
                       type="checkbox"
                       id="privacy"
-                      v-model="contactForm.privacyConsent"
+                      v-model="emailForm.privacyConsent"
                       class="form-check-input"
                       required
                     />
                     <label for="privacy" class="form-check-label">
-                      I agree to the privacy policy and consent to being contacted *
+                      I agree to the
+                      <a href="#" @click.prevent="showPrivacyModal = true" class="privacy-link">
+                        Privacy Policy
+                      </a>
+                      and consent to sending this email *
                     </label>
                   </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg" :disabled="!isFormValid">
-                  Send Message
-                </button>
+
+                <!-- Send Button -->
+                <div class="email-actions-bottom">
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-send"
+                    :disabled="!isFormValid || isSubmitting"
+                  >
+                    <span
+                      v-if="isSubmitting"
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    <i v-else class="fas fa-paper-plane me-2"></i>
+                    {{ isSubmitting ? 'Sending...' : 'Send Email' }}
+                  </button>
+                </div>
+
+                <!-- Status Message -->
+                <div
+                  v-if="submitStatus"
+                  class="status-message mt-3"
+                  :class="{ success: submitStatus.success, error: !submitStatus.success }"
+                >
+                  <i
+                    :class="
+                      submitStatus.success ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle'
+                    "
+                    class="me-2"
+                  ></i>
+                  {{ submitStatus.message }}
+                </div>
               </form>
             </div>
           </div>
@@ -305,80 +431,364 @@
         </div>
       </div>
     </section>
+
+    <!-- Privacy Policy Modal -->
+    <div v-if="showPrivacyModal" class="privacy-modal-overlay" @click="showPrivacyModal = false">
+      <div class="privacy-modal" @click.stop>
+        <div class="privacy-modal-header">
+          <h3>Privacy Policy</h3>
+          <button class="close-btn" @click="showPrivacyModal = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="privacy-modal-content">
+          <div class="privacy-section">
+            <h4>1. Introduction</h4>
+            <p>
+              Feeling Care ("we," "our," or "us") is committed to protecting your privacy and
+              personal information. This Privacy Policy explains how we collect, use, disclose, and
+              safeguard your information when you use our email service and website.
+            </p>
+          </div>
+
+          <div class="privacy-section">
+            <h4>2. Information We Collect</h4>
+            <h5>2.1 Information You Provide Directly</h5>
+            <ul>
+              <li>
+                <strong>Email Addresses:</strong> Recipient, sender, CC, and BCC email addresses
+              </li>
+              <li><strong>Message Content:</strong> Subject lines and message body content</li>
+              <li>
+                <strong>Personal Information:</strong> Names, phone numbers, and other contact
+                details
+              </li>
+              <li>
+                <strong>File Attachments:</strong> Documents and files you choose to attach to
+                emails
+              </li>
+            </ul>
+
+            <h5>2.2 Information We Collect Automatically</h5>
+            <ul>
+              <li><strong>Usage Data:</strong> How you interact with our email service</li>
+              <li>
+                <strong>Device Information:</strong> Browser type, operating system, and device
+                identifiers
+              </li>
+              <li><strong>Log Data:</strong> IP addresses, access times, and pages visited</li>
+            </ul>
+          </div>
+
+          <div class="privacy-section">
+            <h4>3. How We Use Your Information</h4>
+            <p>We use the information we collect to:</p>
+            <ul>
+              <li>
+                <strong>Provide Email Services:</strong> Send, receive, and manage your emails
+              </li>
+              <li>
+                <strong>Improve Our Service:</strong> Analyze usage patterns and enhance
+                functionality
+              </li>
+              <li>
+                <strong>Communicate with You:</strong> Respond to inquiries and provide support
+              </li>
+              <li>
+                <strong>Ensure Security:</strong> Protect against fraud, abuse, and unauthorized
+                access
+              </li>
+            </ul>
+          </div>
+
+          <div class="privacy-section">
+            <h4>4. Information Sharing and Disclosure</h4>
+            <h5>4.1 We Do Not Sell Your Information</h5>
+            <p>We do not sell, trade, or rent your personal information to third parties.</p>
+
+            <h5>4.2 Limited Sharing</h5>
+            <p>We may share your information only in the following circumstances:</p>
+            <ul>
+              <li>
+                <strong>Service Providers:</strong> Trusted third parties who assist in operating
+                our service
+              </li>
+              <li>
+                <strong>Legal Requirements:</strong> When required by law or to protect our rights
+              </li>
+              <li><strong>Consent:</strong> When you explicitly consent to sharing</li>
+            </ul>
+          </div>
+
+          <div class="privacy-section">
+            <h4>5. Data Security</h4>
+            <ul>
+              <li>
+                <strong>Encryption:</strong> All data transmission is encrypted using
+                industry-standard protocols
+              </li>
+              <li>
+                <strong>Access Controls:</strong> Strict access controls limit who can view your
+                information
+              </li>
+              <li>
+                <strong>Secure Storage:</strong> Your data is stored in secure, monitored facilities
+              </li>
+            </ul>
+          </div>
+
+          <div class="privacy-section">
+            <h4>6. Your Rights and Choices</h4>
+            <ul>
+              <li>
+                <strong>View Your Data:</strong> Request access to the personal information we hold
+                about you
+              </li>
+              <li>
+                <strong>Update Information:</strong> Correct or update your personal information
+              </li>
+              <li><strong>Delete Data:</strong> Request deletion of your personal information</li>
+            </ul>
+          </div>
+
+          <div class="privacy-section">
+            <h4>7. Contact Information</h4>
+            <p>If you have questions about this Privacy Policy, please contact us:</p>
+            <div class="contact-info">
+              <p><strong>Feeling Care Privacy Team</strong></p>
+              <p>Email: <a href="mailto:privacy@feelingcare.org">privacy@feelingcare.org</a></p>
+            </div>
+          </div>
+
+          <div class="privacy-footer">
+            <p>
+              <em>
+                By using our email service, you acknowledge that you have read and understood this
+                Privacy Policy and agree to the collection, use, and disclosure of your information
+                as described herein.
+              </em>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { ref } from 'vue'
 import { sanitizeInput, rateLimiter } from '../utils/security.js'
+import {
+  sendEmailWithAttachment,
+  fileToBase64,
+  isValidEmail,
+  getMimeType,
+} from '../services/emailService'
 
 export default {
   name: 'AboutUs',
-  data() {
+  setup() {
+    const emailForm = ref({
+      to: '',
+      from: '',
+      cc: '',
+      bcc: '',
+      subject: '',
+      message: '',
+      isHtml: true,
+      privacyConsent: false,
+    })
+
+    const selectedFiles = ref([])
+    const isSubmitting = ref(false)
+    const submitStatus = ref(null)
+    const showPrivacyModal = ref(false)
+
     return {
-      contactForm: {
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-        privacyConsent: false,
-      },
+      emailForm,
+      selectedFiles,
+      isSubmitting,
+      submitStatus,
+      showPrivacyModal,
     }
   },
   computed: {
     isFormValid() {
       return (
-        this.contactForm.firstName.trim() &&
-        this.contactForm.lastName.trim() &&
-        this.contactForm.email.trim() &&
-        this.contactForm.subject &&
-        this.contactForm.message.trim() &&
-        this.contactForm.privacyConsent
+        this.emailForm.to.trim() &&
+        this.emailForm.from.trim() &&
+        this.emailForm.subject.trim() &&
+        this.emailForm.message.trim() &&
+        this.emailForm.privacyConsent
       )
     },
   },
   methods: {
-    async submitContactForm() {
+    // Handle file selection
+    handleFileChange(event) {
+      const files = Array.from(event.target.files)
+      this.selectedFiles = [...this.selectedFiles, ...files]
+    },
+
+    // Remove file from selection
+    removeFile(index) {
+      this.selectedFiles.splice(index, 1)
+    },
+
+    // Format file size
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes'
+      const k = 1024
+      const sizes = ['Bytes', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    },
+
+    // Insert signature
+    insertSignature() {
+      const signature = `\n\nBest regards,\n${this.emailForm.from.split('@')[0]}`
+      this.emailForm.message += signature
+    },
+
+    // Clear message
+    clearMessage() {
+      this.emailForm.message = ''
+    },
+
+    // Clear entire form
+    clearForm() {
+      this.emailForm = {
+        to: '',
+        from: '',
+        cc: '',
+        bcc: '',
+        subject: '',
+        message: '',
+        isHtml: true,
+        privacyConsent: false,
+      }
+      this.selectedFiles = []
+      this.submitStatus = null
+    },
+
+    // Save draft (placeholder functionality)
+    saveDraft() {
+      // In a real application, this would save to localStorage or backend
+      localStorage.setItem('emailDraft', JSON.stringify(this.emailForm))
+      this.submitStatus = { success: true, message: 'Draft saved successfully!' }
+      setTimeout(() => {
+        this.submitStatus = null
+      }, 3000)
+    },
+
+    // Validate email list
+    validateEmailList(emailString) {
+      if (!emailString.trim()) return true
+      const emails = emailString.split(',').map((email) => email.trim())
+      return emails.every((email) => isValidEmail(email))
+    },
+
+    async submitEmailForm() {
       // Rate limiting check
-      const userIdentifier = 'contact-form-' + this.contactForm.email
+      const userIdentifier = 'email-form-' + this.emailForm.from
       if (!rateLimiter.isAllowed(userIdentifier)) {
-        alert('Too many requests. Please wait before submitting again.')
+        this.submitStatus = {
+          success: false,
+          message: 'Too many requests. Please wait before submitting again.',
+        }
         return
       }
+
+      // Validation
+      if (!isValidEmail(this.emailForm.to)) {
+        this.submitStatus = {
+          success: false,
+          message: 'Please enter a valid recipient email address.',
+        }
+        return
+      }
+
+      if (!isValidEmail(this.emailForm.from)) {
+        this.submitStatus = {
+          success: false,
+          message: 'Please enter a valid sender email address.',
+        }
+        return
+      }
+
+      // Validate CC emails
+      if (this.emailForm.cc && !this.validateEmailList(this.emailForm.cc)) {
+        this.submitStatus = { success: false, message: 'Please enter valid CC email addresses.' }
+        return
+      }
+
+      // Validate BCC emails
+      if (this.emailForm.bcc && !this.validateEmailList(this.emailForm.bcc)) {
+        this.submitStatus = { success: false, message: 'Please enter valid BCC email addresses.' }
+        return
+      }
+
+      this.isSubmitting = true
+      this.submitStatus = null
 
       try {
         // Sanitize form data
         const sanitizedData = {
-          firstName: sanitizeInput(this.contactForm.firstName),
-          lastName: sanitizeInput(this.contactForm.lastName),
-          email: sanitizeInput(this.contactForm.email),
-          phone: sanitizeInput(this.contactForm.phone),
-          subject: sanitizeInput(this.contactForm.subject),
-          message: sanitizeInput(this.contactForm.message),
-          privacyConsent: this.contactForm.privacyConsent,
+          to: sanitizeInput(this.emailForm.to),
+          from: sanitizeInput(this.emailForm.from),
+          cc: sanitizeInput(this.emailForm.cc),
+          bcc: sanitizeInput(this.emailForm.bcc),
+          subject: sanitizeInput(this.emailForm.subject),
+          message: sanitizeInput(this.emailForm.message),
+          isHtml: this.emailForm.isHtml,
+          privacyConsent: this.emailForm.privacyConsent,
         }
 
-        console.log('Contact form submitted:', sanitizedData)
+        // Process attachments
+        const attachments = []
+        for (const file of this.selectedFiles) {
+          const base64Content = await fileToBase64(file)
+          attachments.push({
+            filename: file.name,
+            content: base64Content,
+            type: getMimeType(file.name),
+            disposition: 'attachment',
+          })
+        }
 
-        // Simulate form submission
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        // Create email content
+        const emailSubject = sanitizedData.subject
 
-        alert('Thank you for your message! We will get back to you within 24 hours.')
+        const emailText = sanitizedData.message
 
-        // Reset form
-        this.contactForm = {
-          firstName: '',
-          lastName: '',
-          email: '',
-          phone: '',
-          subject: '',
-          message: '',
-          privacyConsent: false,
+        const emailHtml = sanitizedData.isHtml
+          ? `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">${sanitizedData.message.replace(/\n/g, '<br>')}</div>`
+          : sanitizedData.message
+
+        // Send email
+        const result = await sendEmailWithAttachment(
+          sanitizedData.to,
+          sanitizedData.from,
+          emailSubject,
+          emailText,
+          emailHtml,
+          attachments,
+        )
+
+        this.submitStatus = result
+
+        // Clear form if successful
+        if (result.success) {
+          this.clearForm()
         }
       } catch (error) {
         console.error('Error submitting contact form:', error)
-        alert('There was an error submitting your message. Please try again.')
+        this.submitStatus = {
+          success: false,
+          message: 'An unexpected error occurred. Please try again.',
+        }
+      } finally {
+        this.isSubmitting = false
       }
     },
   },

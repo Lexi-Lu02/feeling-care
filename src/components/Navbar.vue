@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
 // Define component name to fix linter error
@@ -8,7 +7,6 @@ defineOptions({
   name: 'NavigationBar',
 })
 
-const router = useRouter()
 const auth = getAuth()
 const currentUser = ref(null)
 
@@ -17,20 +15,6 @@ onMounted(() => {
     currentUser.value = user
   })
 })
-
-function goToAuth() {
-  router.push('/auth')
-}
-
-function goToDashboard() {
-  if (!currentUser.value) return
-  const email = currentUser.value.email?.toLowerCase() || ''
-  if (email.includes('admin')) {
-    router.push('/admin')
-  } else {
-    router.push('/dashboard')
-  }
-}
 
 const logout = () => {
   auth.signOut()
