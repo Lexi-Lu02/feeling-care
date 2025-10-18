@@ -14,7 +14,7 @@ const firebaseConfig = {
   apiKey: 'AIzaSyDGrA5KWGjdQwaA8CdCYzbmDYmwMjYSYO0',
   authDomain: 'assignment3-lanxin-lu-33912645.firebaseapp.com',
   projectId: 'assignment3-lanxin-lu-33912645',
-  storageBucket: 'assignment3-lanxin-lu-33912645.firebasestorage.app',
+  storageBucket: 'assignment3-lanxin-lu-33912645.firebasestorage.com',
   messagingSenderId: '561423951295',
   appId: '1:561423951295:web:732d1448c23c7eff3b6d0a',
   measurementId: 'G-MD1NWMKJH9',
