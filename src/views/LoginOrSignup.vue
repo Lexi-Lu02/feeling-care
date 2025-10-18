@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { z } from 'zod'
-import { signup, ROLES } from '../services/authService'
+import { auth } from '@/services/firebaseService'
 import {
-  getAuth,
   signInWithPopup,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
@@ -12,21 +12,18 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth'
 
+const router = useRouter()
 const isLogin = ref(true)
-
 const email = ref('')
 const password = ref('')
 const username = ref('')
 const selectedRole = ref('')
-
 const errors = ref({})
 const isLoading = ref(false)
-
-// Firebase authentication
 const firebaseUser = ref(null)
 const firebaseError = ref('')
-const auth = getAuth()
 
+// Validation Schemas
 const signupSchema = z.object({
   username: z
     .string()
@@ -39,87 +36,63 @@ const signupSchema = z.object({
     .max(20, 'Password must be at most 20 characters')
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Please enter 8 - 20 characters. Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      'Password must contain at least one uppercase, one lowercase, and one number'
     ),
   role: z.string().min(1, 'Please select a role'),
 })
 
+const loginSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(20, 'Password must be at most 20 characters'),
+})
+
+// ---------- Helpers ----------
+function clearForm() {
+  email.value = ''
+  password.value = ''
+  username.value = ''
+  selectedRole.value = ''
+  errors.value = {}
+  firebaseError.value = ''
+}
+
+// ---------- Form Submission ----------
 async function handleSubmit() {
   try {
-    // Use Firebase authentication for email/password
     if (isLogin.value) {
+      const result = loginSchema.safeParse({ email: email.value, password: password.value })
+      if (!result.success) {
+        errors.value = {}
+        result.error.issues.forEach((e) => (errors.value[e.path[0]] = e.message))
+        return
+      }
       await signInWithFirebaseEmail()
     } else {
-      // For signup, use the original authentication service
-      const schema = signupSchema
-      const formData = {
+      const result = signupSchema.safeParse({
         username: username.value,
         email: email.value,
         password: password.value,
         role: selectedRole.value,
-      }
-
-      const result = schema.safeParse(formData)
-
+      })
       if (!result.success) {
-        // Clear previous errors
         errors.value = {}
-
-        // Group errors by field - Zod error structure is different
-        if (result.error && result.error.issues) {
-          result.error.issues.forEach((error) => {
-            const field = error.path[0]
-            errors.value[field] = error.message
-          })
-        }
-      } else {
-        errors.value = {}
-        isLoading.value = true
-
-        try {
-          // Use the authentication service for signup
-          const authResult = await signup(
-            username.value,
-            email.value,
-            password.value,
-            selectedRole.value,
-          )
-
-          if (authResult.success) {
-            const userData = authResult.user
-
-            // Emit login event or redirect based on role
-            if (userData.role === ROLES.ADMIN) {
-              // Redirect to admin dashboard
-              window.location.href = '/admin'
-            } else {
-              // Redirect to home page
-              window.location.href = '/'
-            }
-          }
-        } catch (authError) {
-          console.error('Authentication error:', authError)
-          errors.value = { general: authError.message }
-        } finally {
-          isLoading.value = false
-        }
-
-        email.value = password.value = username.value = selectedRole.value = ''
+        result.error.issues.forEach((e) => (errors.value[e.path[0]] = e.message))
+        return
       }
+      await signUpWithFirebase()
     }
   } catch (error) {
     console.error('Validation error:', error)
     errors.value = { general: 'An error occurred during validation' }
+  } finally {
     isLoading.value = false
   }
 }
 
-function clearForm() {
-  email.value = password.value = username.value = selectedRole.value = ''
-  errors.value = {}
-}
-
-// Firebase authentication methods
+// ---------- Firebase Auth ----------
 async function signInWithGoogle() {
   try {
     const provider = new GoogleAuthProvider()
@@ -127,9 +100,13 @@ async function signInWithGoogle() {
     firebaseUser.value = result.user
     firebaseError.value = ''
 
-    // Redirect after successful Firebase login
-    window.location.href = '/'
+    if (result.user.email.toLowerCase().includes('admin')) {
+      await router.push('/admin')
+    } else {
+      await router.push('/')
+    }
   } catch (err) {
+    console.log('Firebase Google Sign-in Error:', err.code)
     firebaseError.value = err.message
   }
 }
@@ -140,29 +117,74 @@ async function signInWithFirebaseEmail() {
     return
   }
 
+  isLoading.value = true
+  firebaseError.value = ''
+
   try {
     const result = await signInWithEmailAndPassword(auth, email.value, password.value)
     firebaseUser.value = result.user
-    firebaseError.value = ''
 
-    // Redirect after successful Firebase login
-    window.location.href = '/'
-  } catch (err) {
-    if (err.code === 'auth/user-not-found') {
-      // Try to create account if user doesn't exist
-      try {
-        const result = await createUserWithEmailAndPassword(auth, email.value, password.value)
-        firebaseUser.value = result.user
-        firebaseError.value = ''
-
-        // Redirect after successful Firebase signup
-        window.location.href = '/'
-      } catch (createErr) {
-        firebaseError.value = createErr.message
-      }
+    if (email.value.toLowerCase().includes('admin')) {
+      await router.push('/admin')
     } else {
-      firebaseError.value = err.message
+      await router.push('/')
     }
+  } catch (err) {
+    console.error('Firebase Sign-in Error:', err)
+    if (err.code === 'auth/network-request-failed') {
+      firebaseError.value = 'Network error: Check Firebase Console settings and authorized domains'
+    } else if (err.code === 'auth/user-not-found') {
+      firebaseError.value = 'No account found with this email. Please sign up first.'
+    } else if (err.code === 'auth/wrong-password') {
+      firebaseError.value = 'Incorrect password. Please try again.'
+    } else if (err.code === 'auth/invalid-email') {
+      firebaseError.value = 'Invalid email address format.'
+    } else {
+      firebaseError.value = `Sign-in failed: ${err.message}`
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function signUpWithFirebase() {
+  if (!email.value || !password.value || !username.value || !selectedRole.value) {
+    firebaseError.value = 'Please fill in all fields'
+    return
+  }
+
+  isLoading.value = true
+  firebaseError.value = ''
+
+  try {
+    console.log('Attempting to create user with email:', email.value)
+    const result = await createUserWithEmailAndPassword(auth, email.value, password.value)
+    firebaseUser.value = result.user
+
+    console.log('Firebase Sign-up Successful!', result.user)
+
+    await firebaseSignOut(auth)
+    firebaseUser.value = null
+    clearForm()
+
+    // Redirect user back to login page
+    isLogin.value = true
+    await router.push('/auth')
+  } catch (err) {
+    console.error('Firebase Sign-up Error:', err)
+    if (err.code === 'auth/network-request-failed') {
+      firebaseError.value = 'Network error: Check Firebase Console settings and authorized domains'
+    } else if (err.code === 'auth/email-already-in-use') {
+      firebaseError.value = 'This email is already registered. Try logging in instead.'
+    } else if (err.code === 'auth/weak-password') {
+      firebaseError.value = 'Password is too weak. Please use at least 6 characters.'
+    } else if (err.code === 'auth/invalid-email') {
+      firebaseError.value = 'Invalid email address format.'
+    } else {
+      firebaseError.value = `Sign-up failed: ${err.message}`
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -176,7 +198,7 @@ async function signOutFirebase() {
   }
 }
 
-// Listen for Firebase auth state changes
+// ---------- Listen for Auth Changes ----------
 onMounted(() => {
   onAuthStateChanged(auth, (user) => {
     firebaseUser.value = user
@@ -188,12 +210,7 @@ onMounted(() => {
   <div class="auth-container">
     <h2>{{ isLogin ? 'Login' : 'Sign Up' }}</h2>
 
-    <!-- Firebase User Status -->
-    <div v-if="firebaseUser" class="alert alert-success mb-4">
-      <h5>Welcome, {{ firebaseUser.displayName || firebaseUser.email }}!</h5>
-      <p>You are signed in with Firebase.</p>
-      <button @click="signOutFirebase" class="btn btn-danger btn-sm">Sign Out</button>
-    </div>
+    <!-- Firebase User Message (Removed “Welcome” toast) -->
 
     <form @submit.prevent="handleSubmit" class="mt-3">
       <div v-if="!isLogin" class="mb-3">
@@ -235,13 +252,12 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Role Selection (only for signup) -->
       <div v-if="!isLogin" class="mb-3">
-        <label class="form-label">Role</label>
+        <label class="form-label">I am seeking help for:</label>
         <select v-model="selectedRole" class="form-select" :class="{ 'is-invalid': errors.role }">
-          <option value="">Select a role</option>
-          <option value="user">User</option>
-          <option value="admin">Administrator</option>
+          <option value="">Select an option</option>
+          <option value="myself">Seek help for myself</option>
+          <option value="someone-else">Seeking help for someone else</option>
         </select>
         <div v-if="errors.role" class="invalid-feedback">
           {{ errors.role }}
@@ -258,29 +274,20 @@ onMounted(() => {
       </div>
     </form>
 
-    <!-- General error message -->
-    <div v-if="errors.general" class="alert alert-danger mt-3">
-      {{ errors.general }}
-    </div>
-
-    <!-- Firebase error message -->
-    <div v-if="firebaseError" class="alert alert-danger mt-3">
-      {{ firebaseError }}
-    </div>
+    <!-- Error Messages -->
+    <div v-if="errors.general" class="alert alert-danger mt-3">{{ errors.general }}</div>
+    <div v-if="firebaseError" class="alert alert-danger mt-3">{{ firebaseError }}</div>
 
     <p class="mt-3">
       <a href="#" @click.prevent="isLogin = !isLogin">
-        {{
-          isLogin ? "Don't have an account? Sign up here." : 'Already have an account? Login here.'
-        }}
+        {{ isLogin ? "Don't have an account? Sign up here." : 'Already have an account? Login here.' }}
       </a>
     </p>
 
-    <!-- Google Sign-in button -->
     <div v-if="!firebaseUser" class="text-center mt-3">
-      <button @click="signInWithGoogle" class="btn btn-outline-primary">
+      <button @click="signInWithGoogle" class="btn btn-primary google-signin-btn">
         <i class="fab fa-google me-2"></i>
-        Sign in with Google
+        Login with Google
       </button>
     </div>
   </div>
@@ -291,6 +298,41 @@ onMounted(() => {
   max-width: 500px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+.google-signin-btn {
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+  font-family: Tahoma, sans-serif;
+}
+
+.google-signin-btn:hover {
+  background: linear-gradient(135deg, #3367d6 0%, #2d8f47 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+  color: white;
+}
+
+.google-signin-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+}
+
+.google-signin-btn:focus {
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+  outline: none;
+}
+
+.google-signin-btn i {
+  font-size: 1.1em;
 }
 
 .btn-outline-primary:hover {

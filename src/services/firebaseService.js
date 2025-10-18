@@ -1,61 +1,81 @@
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { initializeApp, getApps, getApp } from 'firebase/app'
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth'
 
-// Firebase Auth service
-export class FirebaseAuthService {
+// Firebase web configuration
+const firebaseConfig = {
+  apiKey: 'AIzaSyDGrA5KWGjdQwaA8CdCYzbmDYmwMjYSYO0',
+  authDomain: 'assignment3-lanxin-lu-33912645.firebaseapp.com',
+  projectId: 'assignment3-lanxin-lu-33912645',
+  storageBucket: 'assignment3-lanxin-lu-33912645.firebasestorage.app',
+  messagingSenderId: '561423951295',
+  appId: '1:561423951295:web:732d1448c23c7eff3b6d0a',
+  measurementId: 'G-MD1NWMKJH9',
+}
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
+const auth = getAuth(app)
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log('Firebase Auth persistence set to local')
+  })
+  .catch((error) => {
+    console.error(' Error setting Firebase persistence:', error)
+  })
+
+// ========== Optional class wrapper for extra helpers ==========
+class FirebaseAuthService {
   constructor() {
-    this.auth = getAuth()
+    this.auth = auth
     this.currentUser = null
     this.listeners = []
 
-    // Listen for auth state changes
+    // Track auth state changes globally
     onAuthStateChanged(this.auth, (user) => {
       this.currentUser = user
       this.notifyListeners(user)
     })
   }
 
-  // Get current user
+  // Return the current Firebase user object
   getCurrentUser() {
     return this.currentUser
   }
 
-  // Check if user is authenticated
+  // Return whether the user is signed in
   isAuthenticated() {
     return this.currentUser !== null
   }
 
-  // Add listener for auth state changes
+  // Add a listener that triggers when auth state changes
   addAuthStateListener(callback) {
     this.listeners.push(callback)
-    // Call immediately with current state
-    callback(this.currentUser)
+    callback(this.currentUser) // immediately call once
   }
 
-  // Remove listener
+  // Remove a listener
   removeAuthStateListener(callback) {
-    this.listeners = this.listeners.filter((listener) => listener !== callback)
+    this.listeners = this.listeners.filter((fn) => fn !== callback)
   }
 
-  // Notify all listeners
+  // Notify all listeners when user state changes
   notifyListeners(user) {
-    this.listeners.forEach((listener) => listener(user))
+    this.listeners.forEach((fn) => fn(user))
   }
 
-  // Get user display name
+  // Utility getters
   getUserDisplayName() {
     return this.currentUser?.displayName || this.currentUser?.email || 'Anonymous'
   }
 
-  // Get user email
   getUserEmail() {
     return this.currentUser?.email || null
   }
 
-  // Get user ID
   getUserId() {
     return this.currentUser?.uid || null
   }
 }
 
-// Create singleton instance
+// Export both the class and the reusable auth instance
 export const firebaseAuthService = new FirebaseAuthService()
+export { auth }

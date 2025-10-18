@@ -7,20 +7,30 @@
     <title>Feeling Care - Mental Health Support</title>
 
     <meta
-      http-equiv="Content-Security-Policy"
-      content="
-      default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;
-      script-src 'self' 'unsafe-inline' 'unsafe-eval';
-      style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
-      font-src 'self' https://cdnjs.cloudflare.com;
+    http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.googleapis.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+      font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
       img-src 'self' data: blob:;
-      connect-src 'self' ws: wss:;
+      connect-src 'self'
+        https://*.googleapis.com
+        https://*.firebaseio.com
+        https://securetoken.googleapis.com
+        https://identitytoolkit.googleapis.com
+        ws: wss:;
+      frame-src 'self' https://*.firebaseapp.com;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
       frame-ancestors 'none';
+      upgrade-insecure-requests;
+      block-all-mixed-content;
     "
-    />
+  />
+
+
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
