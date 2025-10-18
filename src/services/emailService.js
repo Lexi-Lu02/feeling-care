@@ -13,6 +13,8 @@
  */
 export const sendEmailWithAttachment = async (to, from, subject, text, html, attachments = []) => {
   try {
+    console.log('📧 Attempting to send email:', { to, from, subject })
+
     // Cloudflare functions are exposed at the root (not /api/)
     const response = await fetch('/send-email', {
       method: 'POST',
@@ -29,8 +31,11 @@ export const sendEmailWithAttachment = async (to, from, subject, text, html, att
       }),
     })
 
+    console.log('📡 Response status:', response.status, response.statusText)
+
     if (!response.ok) {
       const errText = await response.text()
+      console.error('❌ Server error response:', errText)
       throw new Error(`Email send failed: ${errText}`)
     }
 

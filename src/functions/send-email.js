@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
     // Prepare email payload
     const emailPayload = {
       personalizations: [{ to: [{ email: data.to }] }],
-      from: { email: data.from || 'lanxinlu1239@gmail.com', name: 'FeelingCare Support' },
+      from: { email: data.from || 'lanxinlu0102@gmail.com', name: 'FeelingCareSupport' },
       subject: data.subject || 'No Subject',
       content: [
         {
