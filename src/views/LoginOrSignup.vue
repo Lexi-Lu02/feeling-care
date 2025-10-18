@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
 import { auth } from '@/services/firebaseService'
@@ -23,33 +23,28 @@ const isLoading = ref(false)
 const firebaseUser = ref(null)
 const firebaseError = ref('')
 
-// Validation Schemas
+// Validation schemas
 const signupSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
   email: z.string().email('Invalid email'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
-    .max(20, 'Password must be at most 20 characters')
+    .max(20)
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain at least one uppercase, one lowercase, and one number'
+      'Password must include uppercase, lowercase, and a number',
     ),
   role: z.string().min(1, 'Please select a role'),
 })
-
 const loginSchema = z.object({
   email: z.string().email('Invalid email'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(20, 'Password must be at most 20 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
-// ---------- Helpers ----------
+// Reset form when switching login/signup
+watch(isLogin, () => clearForm())
+
 function clearForm() {
   email.value = ''
   password.value = ''
@@ -59,13 +54,15 @@ function clearForm() {
   firebaseError.value = ''
 }
 
-// ---------- Form Submission ----------
+// --- Form Submit ---
 async function handleSubmit() {
+  errors.value = {}
+  firebaseError.value = ''
+  isLoading.value = true
   try {
     if (isLogin.value) {
       const result = loginSchema.safeParse({ email: email.value, password: password.value })
       if (!result.success) {
-        errors.value = {}
         result.error.issues.forEach((e) => (errors.value[e.path[0]] = e.message))
         return
       }
@@ -78,265 +75,212 @@ async function handleSubmit() {
         role: selectedRole.value,
       })
       if (!result.success) {
-        errors.value = {}
         result.error.issues.forEach((e) => (errors.value[e.path[0]] = e.message))
         return
       }
       await signUpWithFirebase()
     }
   } catch (error) {
-    console.error('Validation error:', error)
-    errors.value = { general: 'An error occurred during validation' }
+    console.error(error)
+    firebaseError.value = 'Unexpected error occurred'
   } finally {
     isLoading.value = false
   }
 }
 
-// ---------- Firebase Auth ----------
-async function signInWithGoogle() {
-  try {
-    const provider = new GoogleAuthProvider()
-    const result = await signInWithPopup(auth, provider)
-    firebaseUser.value = result.user
-    firebaseError.value = ''
-
-    if (result.user.email.toLowerCase().includes('admin')) {
-      await router.push('/admin')
-    } else {
-      await router.push('/')
-    }
-  } catch (err) {
-    console.log('Firebase Google Sign-in Error:', err.code)
-    firebaseError.value = err.message
-  }
-}
-
+// --- Firebase Actions ---
 async function signInWithFirebaseEmail() {
-  if (!email.value || !password.value) {
-    firebaseError.value = 'Please enter email and password'
-    return
-  }
-
-  isLoading.value = true
-  firebaseError.value = ''
-
   try {
-    const result = await signInWithEmailAndPassword(auth, email.value, password.value)
-    firebaseUser.value = result.user
-
+    const res = await signInWithEmailAndPassword(auth, email.value, password.value)
+    firebaseUser.value = res.user
     if (email.value.toLowerCase().includes('admin')) {
       await router.push('/admin')
     } else {
       await router.push('/')
     }
   } catch (err) {
-    console.error('Firebase Sign-in Error:', err)
-    if (err.code === 'auth/network-request-failed') {
-      firebaseError.value = 'Network error: Check Firebase Console settings and authorized domains'
-    } else if (err.code === 'auth/user-not-found') {
-      firebaseError.value = 'No account found with this email. Please sign up first.'
-    } else if (err.code === 'auth/wrong-password') {
-      firebaseError.value = 'Incorrect password. Please try again.'
-    } else if (err.code === 'auth/invalid-email') {
-      firebaseError.value = 'Invalid email address format.'
-    } else {
-      firebaseError.value = `Sign-in failed: ${err.message}`
-    }
-  } finally {
-    isLoading.value = false
+    firebaseError.value =
+      err.code === 'auth/wrong-password'
+        ? 'Incorrect password.'
+        : err.code === 'auth/user-not-found'
+          ? 'Account not found.'
+          : err.message
   }
 }
 
 async function signUpWithFirebase() {
-  if (!email.value || !password.value || !username.value || !selectedRole.value) {
-    firebaseError.value = 'Please fill in all fields'
-    return
-  }
-
-  isLoading.value = true
-  firebaseError.value = ''
-
   try {
-    console.log('Attempting to create user with email:', email.value)
-    const result = await createUserWithEmailAndPassword(auth, email.value, password.value)
-    firebaseUser.value = result.user
-
-    console.log('Firebase Sign-up Successful!', result.user)
-
-    await firebaseSignOut(auth)
+    const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
+    console.log('Sign-up successful:', res.user)
+    await firebaseSignOut(auth) // logout immediately
     firebaseUser.value = null
     clearForm()
-
-    // Redirect user back to login page
     isLogin.value = true
     await router.push('/auth')
   } catch (err) {
-    console.error('Firebase Sign-up Error:', err)
-    if (err.code === 'auth/network-request-failed') {
-      firebaseError.value = 'Network error: Check Firebase Console settings and authorized domains'
-    } else if (err.code === 'auth/email-already-in-use') {
-      firebaseError.value = 'This email is already registered. Try logging in instead.'
-    } else if (err.code === 'auth/weak-password') {
-      firebaseError.value = 'Password is too weak. Please use at least 6 characters.'
-    } else if (err.code === 'auth/invalid-email') {
-      firebaseError.value = 'Invalid email address format.'
-    } else {
-      firebaseError.value = `Sign-up failed: ${err.message}`
-    }
-  } finally {
-    isLoading.value = false
+    firebaseError.value =
+      err.code === 'auth/email-already-in-use' ? 'Email already registered.' : err.message
   }
 }
 
-async function signOutFirebase() {
+// Google Login
+async function signInWithGoogle() {
   try {
-    await firebaseSignOut(auth)
-    firebaseUser.value = null
-    firebaseError.value = ''
+    const provider = new GoogleAuthProvider()
+    const res = await signInWithPopup(auth, provider)
+    firebaseUser.value = res.user
+    await router.push('/')
   } catch (err) {
     firebaseError.value = err.message
   }
 }
 
-// ---------- Listen for Auth Changes ----------
 onMounted(() => {
-  onAuthStateChanged(auth, (user) => {
-    firebaseUser.value = user
-  })
+  onAuthStateChanged(auth, (user) => (firebaseUser.value = user))
 })
 </script>
 
 <template>
-  <div class="auth-container">
-    <h2>{{ isLogin ? 'Login' : 'Sign Up' }}</h2>
+  <div class="auth-page">
+    <div class="container">
+      <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-lg-5 col-md-7 col-sm-9">
+          <div class="auth-container">
+            <!-- Header Section -->
+            <div class="auth-header">
+              <div class="auth-icon">
+                <img
+                  src="/images/icon/mental-health.png"
+                  alt="Feeling Care"
+                  class="auth-icon-image"
+                />
+              </div>
+              <h1 class="auth-title">{{ isLogin ? 'Welcome Back' : 'Join Our Community' }}</h1>
+              <p class="auth-subtitle">
+                {{
+                  isLogin
+                    ? 'Sign in to continue your wellness journey'
+                    : 'Start your mental health journey with us'
+                }}
+              </p>
+            </div>
 
-    <!-- Firebase User Message (Removed “Welcome” toast) -->
+            <!-- Form Section -->
+            <div class="auth-form-container">
+              <form @submit.prevent="handleSubmit" class="auth-form">
+                <div v-if="!isLogin" class="form-group">
+                  <label class="form-label">Username</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      v-model="username"
+                      class="form-control"
+                      :class="{ 'is-invalid': errors.username }"
+                      placeholder="Enter your username"
+                    />
+                  </div>
+                  <div class="invalid-feedback">{{ errors.username }}</div>
+                </div>
 
-    <form @submit.prevent="handleSubmit" class="mt-3">
-      <div v-if="!isLogin" class="mb-3">
-        <label class="form-label">Username</label>
-        <input
-          v-model="username"
-          type="text"
-          class="form-control"
-          :class="{ 'is-invalid': errors.username }"
-        />
-        <div v-if="errors.username" class="invalid-feedback">
-          {{ errors.username }}
+                <div class="form-group">
+                  <label class="form-label">Email Address</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input
+                      v-model="email"
+                      type="email"
+                      class="form-control"
+                      :class="{ 'is-invalid': errors.email }"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                  <div class="invalid-feedback">{{ errors.email }}</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Password</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input
+                      v-model="password"
+                      type="password"
+                      class="form-control"
+                      :class="{ 'is-invalid': errors.password }"
+                      placeholder="Enter your password"
+                    />
+                  </div>
+                  <div class="invalid-feedback">{{ errors.password }}</div>
+                </div>
+
+                <div v-if="!isLogin" class="form-group">
+                  <label class="form-label">I am seeking help for:</label>
+                  <select
+                    v-model="selectedRole"
+                    class="form-select"
+                    :class="{ 'is-invalid': errors.role }"
+                  >
+                    <option value="">Select an option</option>
+                    <option value="myself">Myself</option>
+                    <option value="someone-else">Someone else</option>
+                  </select>
+                  <div class="invalid-feedback">{{ errors.role }}</div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary btn-submit" :disabled="isLoading">
+                    <span
+                      v-if="isLoading"
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
+                    {{ isLoading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-clear"
+                    @click="clearForm"
+                  >
+                    <i class="fas fa-eraser me-2"></i>Clear
+                  </button>
+                </div>
+              </form>
+
+              <!-- Error Message -->
+              <div v-if="firebaseError" class="alert alert-error">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ firebaseError }}
+              </div>
+
+              <!-- Divider -->
+              <div class="divider">
+                <span>or</span>
+              </div>
+
+              <!-- Google Sign In -->
+              <div class="google-signin">
+                <button @click="signInWithGoogle" class="btn btn-google">
+                  <img src="/images/third party/google.png" alt="Google" class="google-icon" />
+                  Continue with Google
+                </button>
+              </div>
+
+              <!-- Switch Mode -->
+              <div class="auth-switch">
+                <p>
+                  {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
+                  <a href="#" @click.prevent="isLogin = !isLogin" class="switch-link">
+                    {{ isLogin ? 'Sign up here' : 'Sign in here' }}
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input
-          v-model="email"
-          type="email"
-          class="form-control"
-          :class="{ 'is-invalid': errors.email }"
-        />
-        <div v-if="errors.email" class="invalid-feedback">
-          {{ errors.email }}
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input
-          v-model="password"
-          type="password"
-          class="form-control"
-          :class="{ 'is-invalid': errors.password }"
-        />
-        <div v-if="errors.password" class="invalid-feedback">
-          {{ errors.password }}
-        </div>
-      </div>
-
-      <div v-if="!isLogin" class="mb-3">
-        <label class="form-label">I am seeking help for:</label>
-        <select v-model="selectedRole" class="form-select" :class="{ 'is-invalid': errors.role }">
-          <option value="">Select an option</option>
-          <option value="myself">Seek help for myself</option>
-          <option value="someone-else">Seeking help for someone else</option>
-        </select>
-        <div v-if="errors.role" class="invalid-feedback">
-          {{ errors.role }}
-        </div>
-      </div>
-
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" :disabled="isLoading">
-          {{ isLoading ? 'Loading...' : isLogin ? 'Login' : 'Sign Up' }}
-        </button>
-        <button type="button" @click="clearForm" class="btn btn-secondary" :disabled="isLoading">
-          Clear
-        </button>
-      </div>
-    </form>
-
-    <!-- Error Messages -->
-    <div v-if="errors.general" class="alert alert-danger mt-3">{{ errors.general }}</div>
-    <div v-if="firebaseError" class="alert alert-danger mt-3">{{ firebaseError }}</div>
-
-    <p class="mt-3">
-      <a href="#" @click.prevent="isLogin = !isLogin">
-        {{ isLogin ? "Don't have an account? Sign up here." : 'Already have an account? Login here.' }}
-      </a>
-    </p>
-
-    <div v-if="!firebaseUser" class="text-center mt-3">
-      <button @click="signInWithGoogle" class="btn btn-primary google-signin-btn">
-        <i class="fab fa-google me-2"></i>
-        Login with Google
-      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.auth-container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.google-signin-btn {
-  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
-  border: none;
-  color: white;
-  font-weight: 500;
-  padding: 12px 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
-  transition: all 0.3s ease;
-  width: 100%;
-  max-width: 300px;
-  font-family: Tahoma, sans-serif;
-}
-
-.google-signin-btn:hover {
-  background: linear-gradient(135deg, #3367d6 0%, #2d8f47 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
-  color: white;
-}
-
-.google-signin-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
-}
-
-.google-signin-btn:focus {
-  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
-  outline: none;
-}
-
-.google-signin-btn i {
-  font-size: 1.1em;
-}
-
-.btn-outline-primary:hover {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-}
+@import '../assets/auth.css';
 </style>

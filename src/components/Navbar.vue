@@ -1,3 +1,44 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+
+// Define component name to fix linter error
+defineOptions({
+  name: 'NavigationBar',
+})
+
+const router = useRouter()
+const auth = getAuth()
+const currentUser = ref(null)
+
+onMounted(() => {
+  onAuthStateChanged(auth, (user) => {
+    currentUser.value = user
+  })
+})
+
+function goToAuth() {
+  router.push('/auth')
+}
+
+function goToDashboard() {
+  if (!currentUser.value) return
+  const email = currentUser.value.email?.toLowerCase() || ''
+  if (email.includes('admin')) {
+    router.push('/admin')
+  } else {
+    router.push('/dashboard')
+  }
+}
+
+const logout = () => {
+  auth.signOut()
+  currentUser.value = null
+  window.location.reload()
+}
+</script>
+
 <template>
   <nav
     class="navbar navbar-expand-lg navbar-dark bg-primary"
@@ -53,47 +94,21 @@
           </div>
           <template v-if="currentUser">
             <div class="user-menu">
-              <span class="user-info">{{ currentUser.username }} ({{ currentUser.role }})</span>
-              <router-link class="nav-link dashboard-link" to="/dashboard">
+              <span class="user-info">{{ currentUser.displayName || currentUser.email }}</span>
+              <router-link class="nav-link" to="/dashboard" active-class="active">
                 <i class="fas fa-tachometer-alt me-1"></i>
                 Dashboard
               </router-link>
-              <router-link
-                v-if="currentUser.role === 'admin'"
-                class="nav-link admin-link"
-                to="/admin"
-                >Admin Dashboard</router-link
-              >
               <button @click="logout" class="btn btn-outline-danger btn-sm">Logout</button>
             </div>
           </template>
           <template v-else>
-            <router-link class="nav-link login-link" to="/auth">Login/Signup</router-link>
+            <router-link class="nav-link" to="/auth" active-class="active"
+              >Login / Sign Up</router-link
+            >
           </template>
         </div>
       </div>
     </div>
   </nav>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import { getCurrentUser, logout as authLogout } from '../services/authService'
-
-// Define component name to fix linter error
-defineOptions({
-  name: 'NavigationBar',
-})
-
-const currentUser = ref(null)
-
-const logout = () => {
-  authLogout()
-  currentUser.value = null
-  window.location.reload()
-}
-
-onMounted(() => {
-  currentUser.value = getCurrentUser()
-})
-</script>

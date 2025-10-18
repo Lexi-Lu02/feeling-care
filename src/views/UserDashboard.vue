@@ -1,3 +1,25 @@
+<script setup>
+import { getAuth, signOut } from 'firebase/auth'
+import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+
+const auth = getAuth()
+const router = useRouter()
+const isLoggingOut = ref(false)
+
+async function handleLogout() {
+  try {
+    isLoggingOut.value = true
+    await signOut(auth)
+    router.push('/auth')
+  } catch (error) {
+    console.error('Logout error:', error)
+  } finally {
+    isLoggingOut.value = false
+  }
+}
+</script>
+
 <template>
   <div class="dashboard-container">
     <!-- Header Section -->

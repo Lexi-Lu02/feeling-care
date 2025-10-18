@@ -9,8 +9,20 @@
   --light-peach: #fde8d3;
   --muted-rose: #f3c3b2;
   --light-sage: #cfd8c4;
+  --medium-sage: #a9b4a3;
   --pale-green: #ecf2ee;
   --pale-pink: #f9f3ef;
+  --error-red: #dc3545;
+  --success-green: #2d6b3c;
+  --warning-yellow: #ffc107;
+  --white: #ffffff;
+  --black: #000000;
+
+  /* Google brand colors for authentication */
+  --google-blue: #4285f4;
+  --google-green: #34a853;
+  --google-red: #ea4335;
+  --google-yellow: #fbbc05;
 }
 
 /* Custom background color for the main content area */

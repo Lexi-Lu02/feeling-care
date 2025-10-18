@@ -9,7 +9,7 @@ import AdminDashboard from './views/AdminDashboard.vue'
 import BlogPage from './views/BlogPage.vue'
 import BlogPostDetail from './views/BlogPostDetail.vue'
 import UserDashboard from './views/UserDashboard.vue'
-import { requireAdmin } from './services/authService'
+import { requireAdmin, requireAuth } from './services/authService'
 import { securityGuard } from './middleware/security'
 
 const routes = [
@@ -21,7 +21,11 @@ const routes = [
   { path: '/auth', component: LoginOrSignup },
   { path: '/blogs', component: BlogPage },
   { path: '/blogs/:id', component: BlogPostDetail },
-  { path: '/dashboard', component: UserDashboard },
+  {
+    path: '/dashboard',
+    component: UserDashboard,
+    beforeEnter: requireAuth,
+  },
   {
     path: '/admin',
     component: AdminDashboard,

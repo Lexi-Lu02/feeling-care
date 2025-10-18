@@ -1,41 +1,33 @@
+import { firebaseAuthService } from './firebaseService'
+
 // User roles
 export const ROLES = {
   USER: 'user',
   ADMIN: 'admin',
 }
 
-// Default users for demonstration
-const defaultUsers = [
-  {
-    username: 'admin',
-    email: 'admin@feelingcare.com',
-    password: 'Admin123',
-    role: ROLES.ADMIN,
-  },
-  {
-    username: 'user',
-    email: 'user@feelingcare.com',
-    password: 'User1234',
-    role: ROLES.USER,
-  },
-]
-
-// Get current user from localStorage
+// Get current user from Firebase
 export const getCurrentUser = () => {
-  const userData = localStorage.getItem('user')
-  return userData ? JSON.parse(userData) : null
+  return firebaseAuthService.getCurrentUser()
 }
 
-// Check if user is authenticated
+// Check if user is authenticated using Firebase
 export const isAuthenticated = () => {
-  const user = getCurrentUser()
-  return user && user.isAuthenticated
+  return firebaseAuthService.isAuthenticated()
 }
 
-// Check if user has specific role
+// Check if user has specific role (based on email pattern for now)
 export const hasRole = (role) => {
   const user = getCurrentUser()
-  return user && user.role === role
+  if (!user) return false
+
+  // For now, determine role based on email pattern
+  // In a real app, you'd use Firebase custom claims
+  const email = user.email?.toLowerCase() || ''
+  if (role === ROLES.ADMIN) {
+    return email.includes('admin')
+  }
+  return true // All other users are regular users
 }
 
 // Check if user is admin
@@ -48,66 +40,18 @@ export const isUser = () => {
   return hasRole(ROLES.USER)
 }
 
-// Login function
-export const login = async (email, password) => {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
+// Note: Login and signup are now handled by Firebase directly
+// These functions are kept for backward compatibility but redirect to Firebase methods
 
-  // Check against default users (in real app, this would be an API call)
-  const user = defaultUsers.find((u) => u.email === email && u.password === password)
-
-  if (user) {
-    const userData = {
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      isAuthenticated: true,
-    }
-
-    localStorage.setItem('user', JSON.stringify(userData))
-    return { success: true, user: userData }
-  } else {
-    throw new Error('Invalid email or password')
+// Logout function using Firebase
+export const logout = async () => {
+  try {
+    await firebaseAuthService.auth.signOut()
+    return { success: true }
+  } catch (error) {
+    console.error('Logout error:', error)
+    throw error
   }
-}
-
-// Signup function
-export const signup = async (username, email, password, role) => {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  // Check if user already exists
-  const existingUser = defaultUsers.find((u) => u.email === email || u.username === username)
-
-  if (existingUser) {
-    throw new Error('User already exists with this email or username')
-  }
-
-  // Create new user (in real app, this would be saved to database)
-  const newUser = {
-    username,
-    email,
-    password,
-    role: role || ROLES.USER,
-  }
-
-  defaultUsers.push(newUser)
-
-  const userData = {
-    username: newUser.username,
-    email: newUser.email,
-    role: newUser.role,
-    isAuthenticated: true,
-  }
-
-  localStorage.setItem('user', JSON.stringify(userData))
-  return { success: true, user: userData }
-}
-
-// Logout function
-export const logout = () => {
-  localStorage.removeItem('user')
-  return { success: true }
 }
 
 // Get user permissions based on role
@@ -115,6 +59,10 @@ export const getUserPermissions = () => {
   const user = getCurrentUser()
 
   if (!user) return []
+
+  // Determine role based on email pattern
+  const email = user.email?.toLowerCase() || ''
+  const isAdminUser = email.includes('admin')
 
   const permissions = {
     [ROLES.USER]: ['view_resources', 'access_support', 'view_own_profile', 'update_own_profile'],
@@ -131,7 +79,7 @@ export const getUserPermissions = () => {
     ],
   }
 
-  return permissions[user.role] || []
+  return isAdminUser ? permissions[ROLES.ADMIN] : permissions[ROLES.USER]
 }
 
 // Check if user has specific permission
