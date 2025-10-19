@@ -30,6 +30,12 @@ initializeApp(firebaseConfig)
 
 const app = createApp(App)
 
+// Global error handler
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Global Vue error:', err, info)
+  // Prevent error from crashing the app
+}
+
 // Initialize security measures
 initializeSecurity()
 

@@ -2,6 +2,7 @@
 import { getAuth, signOut } from 'firebase/auth'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
+import InteractiveTable from '../components/InteractiveTable.vue'
 
 const auth = getAuth()
 const router = useRouter()
@@ -126,43 +127,39 @@ async function handleLogout() {
             </div>
           </div>
 
-          <!-- Saved Resources Section -->
+          <!-- Interactive Tables Section -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h3 class="section-title">
+                <i class="fas fa-table me-2"></i>
+                My Activity History
+              </h3>
+            </div>
+            <InteractiveTable
+              v-if="userActivities && userActivities.length > 0"
+              :data="userActivities"
+              :columns="activityColumns"
+            />
+            <div v-else class="no-data-message">
+              <p>No activity data available.</p>
+            </div>
+          </div>
+
+          <!-- Saved Resources Table -->
           <div class="dashboard-section">
             <div class="section-header">
               <h3 class="section-title">
                 <i class="fas fa-bookmark me-2"></i>
                 Saved Resources
               </h3>
-              <div class="resource-filters">
-                <select class="form-select form-select-sm">
-                  <option>All Types</option>
-                  <option>Articles</option>
-                  <option>Videos</option>
-                  <option>Podcasts</option>
-                </select>
-              </div>
             </div>
-            <div class="saved-resources">
-              <div class="resource-grid">
-                <div
-                  class="resource-card"
-                  v-for="resource in savedResourcesList"
-                  :key="resource.id"
-                >
-                  <div class="resource-type">
-                    <i :class="getResourceIcon(resource.type)"></i>
-                    <span>{{ resource.type }}</span>
-                  </div>
-                  <h6 class="resource-title">{{ resource.title }}</h6>
-                  <p class="resource-description">{{ resource.description }}</p>
-                  <div class="resource-meta">
-                    <small class="text-muted">Saved {{ formatDate(resource.savedDate) }}</small>
-                    <button class="btn btn-sm btn-outline-danger ms-auto">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <InteractiveTable
+              v-if="savedResourcesList && savedResourcesList.length > 0"
+              :data="savedResourcesList"
+              :columns="resourceColumns"
+            />
+            <div v-else class="no-data-message">
+              <p>No saved resources available.</p>
             </div>
           </div>
         </div>
@@ -258,6 +255,9 @@ async function handleLogout() {
 <script>
 export default {
   name: 'UserDashboard',
+  components: {
+    InteractiveTable,
+  },
   data() {
     return {
       streakDays: 7,
@@ -289,6 +289,121 @@ export default {
           tags: ['stress', 'work', 'coping'],
         },
       ],
+      // User Activities Data for Interactive Table
+      userActivities: [
+        {
+          id: 1,
+          date: new Date(Date.now() - 7 * 86400000),
+          type: 'Login',
+          description: 'Logged in from IP 192.168.1.1',
+          duration: '2h 30m',
+        },
+        {
+          id: 2,
+          date: new Date(Date.now() - 6 * 86400000),
+          type: 'Email Sent',
+          description: 'Sent email to support@example.com',
+          duration: '5m',
+        },
+        {
+          id: 3,
+          date: new Date(Date.now() - 5 * 86400000),
+          type: 'Profile Update',
+          description: 'Updated profile picture',
+          duration: '3m',
+        },
+        {
+          id: 4,
+          date: new Date(Date.now() - 4 * 86400000),
+          type: 'Login',
+          description: 'Logged in from IP 192.168.1.2',
+          duration: '1h 45m',
+        },
+        {
+          id: 5,
+          date: new Date(Date.now() - 3 * 86400000),
+          type: 'Email Sent',
+          description: 'Sent email to info@example.com',
+          duration: '8m',
+        },
+        {
+          id: 6,
+          date: new Date(Date.now() - 2 * 86400000),
+          type: 'Password Change',
+          description: 'Changed password',
+          duration: '2m',
+        },
+        {
+          id: 7,
+          date: new Date(Date.now() - 1 * 86400000),
+          type: 'Login',
+          description: 'Logged in from IP 192.168.1.1',
+          duration: '3h 15m',
+        },
+        {
+          id: 8,
+          date: new Date(Date.now() - 12 * 3600000),
+          type: 'Email Sent',
+          description: 'Sent email to sales@example.com',
+          duration: '6m',
+        },
+        {
+          id: 9,
+          date: new Date(Date.now() - 6 * 3600000),
+          type: 'Profile Update',
+          description: 'Updated contact info',
+          duration: '4m',
+        },
+        {
+          id: 10,
+          date: new Date(Date.now() - 3 * 3600000),
+          type: 'Login',
+          description: 'Logged in from IP 192.168.1.3',
+          duration: '45m',
+        },
+        {
+          id: 11,
+          date: new Date(Date.now() - 2 * 3600000),
+          type: 'Email Sent',
+          description: 'Sent email to hr@example.com',
+          duration: '7m',
+        },
+        {
+          id: 12,
+          date: new Date(Date.now() - 1 * 3600000),
+          type: 'Login',
+          description: 'Logged in from IP 192.168.1.2',
+          duration: '1h 20m',
+        },
+        {
+          id: 13,
+          date: new Date(Date.now() - 30 * 60000),
+          type: 'Resource Saved',
+          description: 'Saved article about stress management',
+          duration: '2m',
+        },
+        {
+          id: 14,
+          date: new Date(Date.now() - 15 * 60000),
+          type: 'Mood Entry',
+          description: 'Logged daily mood as "Good"',
+          duration: '1m',
+        },
+        {
+          id: 15,
+          date: new Date(Date.now() - 5 * 60000),
+          type: 'Login',
+          description: 'Logged in from IP 192.168.1.1',
+          duration: '10m',
+        },
+      ],
+      activityColumns: [
+        { key: 'id', label: 'ID', sortable: true, searchable: false },
+        { key: 'date', label: 'Date', sortable: true, searchable: true, type: 'date' },
+        { key: 'type', label: 'Activity Type', sortable: true, searchable: true },
+        { key: 'description', label: 'Description', sortable: false, searchable: true },
+        { key: 'duration', label: 'Duration', sortable: true, searchable: false },
+      ],
       savedResourcesList: [
         {
           id: 1,
@@ -296,6 +411,8 @@ export default {
           title: '10 Tips for Better Sleep',
           description: 'Evidence-based strategies to improve your sleep quality',
           savedDate: new Date(Date.now() - 2 * 86400000),
+          category: 'Sleep',
+          author: 'Dr. Sarah Johnson',
         },
         {
           id: 2,
@@ -303,6 +420,8 @@ export default {
           title: 'Mindfulness Meditation',
           description: '15-minute guided meditation for beginners',
           savedDate: new Date(Date.now() - 86400000),
+          category: 'Meditation',
+          author: 'Mindful Moments',
         },
         {
           id: 3,
@@ -310,7 +429,98 @@ export default {
           title: 'Managing Anxiety',
           description: 'Expert interview on anxiety management techniques',
           savedDate: new Date(),
+          category: 'Anxiety',
+          author: 'Mental Health Podcast',
         },
+        {
+          id: 4,
+          type: 'Article',
+          title: 'Building Healthy Habits',
+          description: 'Step-by-step guide to creating lasting positive changes',
+          savedDate: new Date(Date.now() - 3 * 86400000),
+          category: 'Habits',
+          author: 'Dr. Michael Chen',
+        },
+        {
+          id: 5,
+          type: 'Video',
+          title: 'Yoga for Stress Relief',
+          description: 'Gentle yoga routine to reduce stress and tension',
+          savedDate: new Date(Date.now() - 4 * 86400000),
+          category: 'Exercise',
+          author: 'Yoga with Emma',
+        },
+        {
+          id: 6,
+          type: 'Article',
+          title: 'Understanding Depression',
+          description: 'Comprehensive guide to recognizing and managing depression',
+          savedDate: new Date(Date.now() - 5 * 86400000),
+          category: 'Depression',
+          author: 'Dr. Lisa Rodriguez',
+        },
+        {
+          id: 7,
+          type: 'Podcast',
+          title: 'Sleep Science',
+          description: 'Latest research on sleep and its impact on mental health',
+          savedDate: new Date(Date.now() - 6 * 86400000),
+          category: 'Sleep',
+          author: 'Science of Sleep',
+        },
+        {
+          id: 8,
+          type: 'Video',
+          title: 'Breathing Techniques',
+          description: 'Simple breathing exercises for anxiety and stress',
+          savedDate: new Date(Date.now() - 7 * 86400000),
+          category: 'Breathing',
+          author: 'Calm Breathing',
+        },
+        {
+          id: 9,
+          type: 'Article',
+          title: 'Nutrition and Mental Health',
+          description: 'How diet affects your mood and cognitive function',
+          savedDate: new Date(Date.now() - 8 * 86400000),
+          category: 'Nutrition',
+          author: 'Dr. Amanda Foster',
+        },
+        {
+          id: 10,
+          type: 'Podcast',
+          title: 'Work-Life Balance',
+          description: 'Strategies for maintaining healthy boundaries',
+          savedDate: new Date(Date.now() - 9 * 86400000),
+          category: 'Work-Life',
+          author: 'Balance Matters',
+        },
+        {
+          id: 11,
+          type: 'Video',
+          title: 'Progressive Muscle Relaxation',
+          description: 'Guided technique for deep relaxation',
+          savedDate: new Date(Date.now() - 10 * 86400000),
+          category: 'Relaxation',
+          author: 'Relaxation Studio',
+        },
+        {
+          id: 12,
+          type: 'Article',
+          title: 'Social Connection and Mental Health',
+          description: 'The importance of relationships for wellbeing',
+          savedDate: new Date(Date.now() - 11 * 86400000),
+          category: 'Relationships',
+          author: 'Dr. James Wilson',
+        },
+      ],
+      resourceColumns: [
+        { key: 'id', label: 'ID', sortable: true, searchable: false },
+        { key: 'type', label: 'Type', sortable: true, searchable: true },
+        { key: 'title', label: 'Title', sortable: true, searchable: true },
+        { key: 'category', label: 'Category', sortable: true, searchable: true },
+        { key: 'author', label: 'Author', sortable: true, searchable: true },
+        { key: 'savedDate', label: 'Saved Date', sortable: true, searchable: true, type: 'date' },
       ],
       browsingHistory: [
         {
@@ -352,6 +562,18 @@ export default {
           progress: 40,
         },
       ],
+    }
+  },
+  async mounted() {
+    // Wait for DOM to be ready before initializing
+    await this.$nextTick()
+
+    // Ensure data is properly initialized
+    if (!this.userActivities || this.userActivities.length === 0) {
+      console.warn('User activities data not properly initialized')
+    }
+    if (!this.savedResourcesList || this.savedResourcesList.length === 0) {
+      console.warn('Saved resources data not properly initialized')
     }
   },
   methods: {

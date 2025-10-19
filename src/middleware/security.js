@@ -77,7 +77,10 @@ export function securityGuard(to, from, next) {
 
     // In development, only log security events without blocking
     if (!isProduction) {
-      console.log('Route navigation:', to.path, to.params, to.query)
+      // Use setTimeout to avoid DOM-related errors during component updates
+      setTimeout(() => {
+        console.log('Route navigation:', to.path, to.params, to.query)
+      }, 0)
     }
 
     // Sanitize route parameters

@@ -77,10 +77,171 @@
   margin-bottom: 40px;
 }
 
-.user-management h2 {
+.section-header {
   text-align: center;
-  color: var(--bs-primary);
   margin-bottom: 30px;
+}
+
+.section-title {
+  color: var(--bs-primary);
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-description {
+  color: var(--medium-sage);
+  font-size: 1.1rem;
+  margin: 0 0 20px 0;
+}
+
+.section-actions {
+  margin-top: 15px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  background: var(--pale-mint);
+  border-radius: 8px;
+  border: 1px solid var(--light-sage);
+}
+
+.loading-state p {
+  color: var(--medium-sage);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.no-users-state {
+  text-align: center;
+  padding: 60px 40px;
+  background: var(--pale-mint);
+  border-radius: 8px;
+  border: 1px solid var(--light-sage);
+}
+
+.no-users-state h4 {
+  color: var(--bs-primary);
+  margin-bottom: 10px;
+}
+
+.no-users-state p {
+  color: var(--medium-sage);
+  margin: 0;
+}
+
+/* User Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.user-modal {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid var(--light-sage);
+  background: var(--pale-mint);
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h3 {
+  color: var(--bs-primary);
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--medium-sage);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: var(--light-sage);
+  color: var(--bs-primary);
+}
+
+.modal-content {
+  padding: 25px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--pale-mint);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row label {
+  font-weight: 600;
+  color: var(--bs-primary);
+  min-width: 120px;
+}
+
+.detail-row span {
+  color: var(--bs-primary);
+  text-align: right;
+}
+
+.modal-actions {
+  padding: 20px 25px;
+  border-top: 1px solid var(--light-sage);
+  background: var(--pale-mint);
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modal-actions .btn {
+  min-width: 120px;
 }
 
 /* System Settings Section */
