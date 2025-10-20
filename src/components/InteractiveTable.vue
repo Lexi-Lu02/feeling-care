@@ -53,6 +53,26 @@
           <td v-for="col in columns" :key="col.key">
             <span v-if="col.type === 'date'">{{ formatDate(item?.[col.key]) }}</span>
             <span v-else-if="col.type === 'time'">{{ formatTime(item?.[col.key]) }}</span>
+            <span v-else-if="col.type === 'actions'">
+              <!-- Post actions -->
+              <button
+                v-if="item.title"
+                @click.stop="$emit('delete-post', item)"
+                class="btn btn-sm btn-danger me-1"
+                title="Delete Post"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+              <!-- User actions -->
+              <button
+                v-if="item.email"
+                @click.stop="$emit('edit-user-role', item)"
+                class="btn btn-sm btn-warning me-1"
+                title="Edit Role"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+            </span>
             <span v-else>{{ item?.[col.key] || '' }}</span>
           </td>
         </tr>
@@ -101,7 +121,7 @@ export default {
       required: true,
     },
   },
-  emits: ['row-click'],
+  emits: ['row-click', 'delete-post', 'edit-user-role'],
   setup(props, { emit }) {
     // Error boundary to catch and handle errors
     onErrorCaptured((error, instance, info) => {

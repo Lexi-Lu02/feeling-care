@@ -78,4 +78,4 @@ class FirebaseAuthService {
 
 // Export both the class and the reusable auth instance
 export const firebaseAuthService = new FirebaseAuthService()
-export { auth }
+export { auth, firebaseConfig }
