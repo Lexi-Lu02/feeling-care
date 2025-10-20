@@ -10,7 +10,12 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  updateProfile,
 } from 'firebase/auth'
+import { getFirestore, doc, setDoc } from 'firebase/firestore'
+
+// Initialize Firestore
+const db = getFirestore()
 
 const router = useRouter()
 const isLogin = ref(true)
@@ -93,7 +98,12 @@ async function signInWithFirebaseEmail() {
   try {
     const res = await signInWithEmailAndPassword(auth, email.value, password.value)
     firebaseUser.value = res.user
-    if (email.value.toLowerCase().includes('admin')) {
+
+    // Get custom claims to check admin status
+    const idTokenResult = await res.user.getIdTokenResult()
+    const claims = idTokenResult.claims
+
+    if (claims.admin === true || claims.role === 'admin') {
       await router.push('/admin')
     } else {
       await router.push('/')
@@ -111,7 +121,24 @@ async function signInWithFirebaseEmail() {
 async function signUpWithFirebase() {
   try {
     const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
-    console.log('Sign-up successful:', res.user)
+    const user = res.user
+
+    // Optional: set display name
+    if (username.value) {
+      await updateProfile(user, { displayName: username.value })
+    }
+
+    // Create Firestore user document - role will be set by Firebase Functions
+    await setDoc(doc(db, 'users', user.uid), {
+      uid: user.uid,
+      email: user.email,
+      displayName: username.value || '',
+      role: selectedRole.value, // This will be overridden by Firebase Functions for admin emails
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+
+    console.log('User created and synced with Firestore')
     await firebaseSignOut(auth) // logout immediately
     firebaseUser.value = null
     clearForm()
@@ -128,7 +155,24 @@ async function signInWithGoogle() {
   try {
     const provider = new GoogleAuthProvider()
     const res = await signInWithPopup(auth, provider)
-    firebaseUser.value = res.user
+    const user = res.user
+
+    // Create Firestore user document for Google users
+    await setDoc(
+      doc(db, 'users', user.uid),
+      {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || '',
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    ) // Use merge to avoid overwriting existing data
+
+    console.log('Google user synced with Firestore')
+    firebaseUser.value = user
     await router.push('/')
   } catch (err) {
     firebaseError.value = err.message

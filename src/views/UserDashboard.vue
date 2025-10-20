@@ -1,12 +1,27 @@
 <script setup>
 import { getAuth, signOut } from 'firebase/auth'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore'
 import InteractiveTable from '../components/InteractiveTable.vue'
 
 const auth = getAuth()
+const db = getFirestore()
 const router = useRouter()
 const isLoggingOut = ref(false)
+
+// User profile data
+const userProfile = ref({
+  displayName: '',
+  email: '',
+  phone: '',
+  role: '',
+  createdAt: '',
+  updatedAt: '',
+})
+
+const isEditingProfile = ref(false)
+const isLoadingProfile = ref(false)
 
 async function handleLogout() {
   try {
@@ -19,6 +34,68 @@ async function handleLogout() {
     isLoggingOut.value = false
   }
 }
+
+// Load user profile from Firestore
+async function loadUserProfile() {
+  const user = auth.currentUser
+  if (!user) return
+
+  try {
+    isLoadingProfile.value = true
+    const userDoc = await getDoc(doc(db, 'users', user.uid))
+    if (userDoc.exists()) {
+      userProfile.value = { ...userDoc.data(), email: user.email }
+    } else {
+      // If no Firestore document exists, create one with basic info
+      userProfile.value = {
+        displayName: user.displayName || '',
+        email: user.email || '',
+        phone: '',
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    }
+  } catch (error) {
+    console.error('Error loading user profile:', error)
+  } finally {
+    isLoadingProfile.value = false
+  }
+}
+
+// Save profile updates to Firestore
+async function saveProfileUpdates(profileData) {
+  const user = auth.currentUser
+  if (!user) return
+
+  try {
+    await updateDoc(doc(db, 'users', user.uid), {
+      ...profileData,
+      updatedAt: new Date().toISOString(),
+    })
+    console.log('Profile updated successfully')
+    isEditingProfile.value = false
+    // Reload profile data to show updated information
+    await loadUserProfile()
+  } catch (error) {
+    console.error('Error updating profile:', error)
+  }
+}
+
+// Toggle profile editing mode
+function toggleProfileEdit() {
+  isEditingProfile.value = !isEditingProfile.value
+}
+
+// Handle profile form submission
+async function handleProfileSubmit() {
+  await saveProfileUpdates(userProfile.value)
+}
+
+// Initialize profile data on component mount
+onMounted(() => {
+  loadUserProfile()
+})
 </script>
 
 <template>
@@ -166,6 +243,116 @@ async function handleLogout() {
 
         <!-- Right Column -->
         <div class="col-lg-4">
+          <!-- User Profile Section -->
+          <div class="dashboard-section mb-4">
+            <div class="section-header">
+              <h3 class="section-title">
+                <i class="fas fa-user me-2"></i>
+                My Profile
+              </h3>
+              <div class="d-flex gap-2">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  @click="toggleProfileEdit"
+                  :disabled="isLoadingProfile"
+                >
+                  {{ isEditingProfile ? 'Cancel' : 'Edit Profile' }}
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  @click="handleLogout"
+                  :disabled="isLoggingOut"
+                >
+                  <i class="fas fa-sign-out-alt me-1"></i>
+                  {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="isLoadingProfile" class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading profile...</span>
+              </div>
+            </div>
+
+            <div v-else class="profile-content">
+              <!-- Profile Display Mode -->
+              <div v-if="!isEditingProfile" class="profile-display">
+                <div class="profile-item">
+                  <label>Name:</label>
+                  <span>{{ userProfile.displayName || 'Not set' }}</span>
+                </div>
+                <div class="profile-item">
+                  <label>Email:</label>
+                  <span>{{ userProfile.email || 'Not set' }}</span>
+                </div>
+                <div class="profile-item">
+                  <label>Phone:</label>
+                  <span>{{ userProfile.phone || 'Not set' }}</span>
+                </div>
+                <div class="profile-item">
+                  <label>Role:</label>
+                  <span class="badge bg-primary">{{ userProfile.role || 'user' }}</span>
+                </div>
+                <div class="profile-item">
+                  <label>Member since:</label>
+                  <span>{{ formatDate(new Date(userProfile.createdAt)) }}</span>
+                </div>
+              </div>
+
+              <!-- Profile Edit Mode -->
+              <div v-else class="profile-edit">
+                <form @submit.prevent="handleProfileSubmit">
+                  <div class="mb-3">
+                    <label class="form-label">Display Name</label>
+                    <input
+                      v-model="userProfile.displayName"
+                      type="text"
+                      class="form-control"
+                      placeholder="Enter your display name"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input
+                      v-model="userProfile.email"
+                      type="email"
+                      class="form-control"
+                      readonly
+                      title="Email cannot be changed"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <input
+                      v-model="userProfile.phone"
+                      type="tel"
+                      class="form-control"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <select v-model="userProfile.role" class="form-select">
+                      <option value="user">User</option>
+                      <option value="myself">Seeking help for myself</option>
+                      <option value="someone-else">Seeking help for someone else</option>
+                    </select>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fas fa-save me-1"></i>
+                      Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" @click="toggleProfileEdit">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
           <!-- Browsing History Section -->
           <div class="dashboard-section mb-4">
             <div class="section-header">

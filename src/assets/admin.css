@@ -1,10 +1,6 @@
 /* Admin Dashboard Styles */
 
 /* Admin Dashboard Layout */
-.admin-dashboard {
-  min-height: 100vh;
-  background-color: transparent;
-}
 
 .admin-header {
   padding: 40px 0;
@@ -46,15 +42,24 @@
   background-color: whitesmoke;
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(76, 175, 80, 0.1);
   text-align: center;
   margin-bottom: 10px;
   height: 100%;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(76, 175, 80, 0.2);
 }
 
 .action-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
+  font-size: 2.5rem;
+  color: #4caf50;
+  margin-bottom: 1rem;
 }
 
 .action-card h3 {
@@ -269,4 +274,88 @@
   font-size: 1.3rem;
   font-weight: bold;
   margin-bottom: 20px;
+}
+
+/* Additional Admin Dashboard Styles */
+.admin-dashboard {
+  background: linear-gradient(135deg, #f0fff4 0%, #e8f5e8 100%);
+  min-height: 100vh;
+}
+
+.section-title {
+  color: #2d5a3d;
+  font-weight: 600;
+}
+
+.btn-success {
+  background-color: #4caf50;
+  border-color: #4caf50;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #45a049;
+  border-color: #45a049;
+}
+
+.btn-outline-primary {
+  color: #2d5a3d;
+  border-color: #2d5a3d;
+}
+
+.btn-outline-primary:hover {
+  background-color: #2d5a3d;
+  border-color: #2d5a3d;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  border-color: #f44336;
+}
+
+.btn-danger:hover {
+  background-color: #da190b;
+  border-color: #da190b;
+}
+
+.settings-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
+}
+
+.modal-overlay {
+  background: rgba(45, 90, 61, 0.8);
+}
+
+.user-modal,
+.post-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+}
+
+.loading-state,
+.no-users-state,
+.no-posts-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
 }

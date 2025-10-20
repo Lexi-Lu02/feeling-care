@@ -1,9 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getFirestore, collection, getDocs } from 'firebase/firestore'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { getFirestore, collection, getDocs, onSnapshot } from 'firebase/firestore'
 import { initializeApp } from 'firebase/app'
 import { firebaseConfig } from '../services/firebaseService'
-import { getCurrentUser, isAdmin } from '../services/authService'
+import {
+  getCurrentUser,
+  isAdmin,
+  getAllUsers,
+  updateUserRole,
+  cleanupUserData,
+} from '../services/authService'
 import { userManagementService } from '../services/userManagementService'
 import InteractiveTable from '../components/InteractiveTable.vue'
 
@@ -11,10 +17,16 @@ import InteractiveTable from '../components/InteractiveTable.vue'
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
 
-// Check if user is admin
-if (!isAdmin()) {
-  window.location.href = '/auth'
+// Check if user is admin (async)
+const checkAdminAccess = async () => {
+  const isAdminUser = await isAdmin()
+  if (!isAdminUser) {
+    window.location.href = '/auth'
+  }
 }
+
+// Run admin check on component mount
+checkAdminAccess()
 
 const currentUser = ref(getCurrentUser())
 
@@ -28,6 +40,13 @@ const adminActions = ref([
     handler: () => {
       // User management feature clicked
     },
+  },
+  {
+    icon: '👑',
+    title: 'Admin Management',
+    description: 'Assign or remove admin roles from users',
+    buttonText: 'Manage Admins',
+    handler: openAdminManagement,
   },
   {
     icon: '📝',
@@ -80,6 +99,17 @@ const adminActions = ref([
 const users = ref([])
 const isLoadingUsers = ref(false)
 const selectedUser = ref(null)
+
+// Admin Management Data
+const showAdminManagement = ref(false)
+const adminUsers = ref([])
+const isLoadingAdmins = ref(false)
+const adminMessage = ref('')
+const adminMessageType = ref('')
+
+// Real-time listener unsubscribe functions
+let usersUnsubscribe = null
+let postsUnsubscribe = null
 
 // Posts Management Data
 const posts = ref([])
@@ -184,40 +214,23 @@ const deletePost = async (post) => {
   }
 }
 
-// Update user role functionality
-const updateUserRole = async (user, newRole) => {
-  try {
-    const response = await fetch(
-      'https://us-central1-assignment3-lanxin-lu-33912645.cloudfunctions.net/updateUserRole',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          newRole: newRole,
-        }),
-      },
-    )
-
-    if (response.ok) {
-      alert('User role updated successfully')
-      await loadUsers() // Refresh the users list
-    } else {
-      alert('Failed to update user role')
-    }
-  } catch (error) {
-    console.error('Error updating user role:', error)
-    alert('Failed to update user role')
-  }
-}
-
 // Edit user role functionality (prompts for new role)
-const editUserRole = (user) => {
+const editUserRole = async (user) => {
+  // Check if role can be modified
+  if (!user.canModifyRole) {
+    alert('Admin roles cannot be changed for admin email addresses')
+    return
+  }
+
   const newRole = prompt(`Enter new role for ${user.email || user.username}:`, user.role || 'user')
   if (newRole && newRole !== user.role) {
-    updateUserRole(user, newRole)
+    const result = await updateUserRole(user.id, newRole, user.email)
+    if (result.success) {
+      alert(result.message)
+      await loadUsers() // Refresh the users list
+    } else {
+      alert(result.message)
+    }
   }
 }
 
@@ -271,6 +284,57 @@ const getRoleBadgeClass = (role) => {
   return role === 'admin' ? 'bg-danger' : 'bg-primary'
 }
 
+// Admin Management Functions
+const loadAdminUsers = async () => {
+  isLoadingAdmins.value = true
+  try {
+    const allUsers = await getAllUsers()
+    adminUsers.value = allUsers
+  } catch (error) {
+    console.error('Error loading admin users:', error)
+    showMessage('Failed to load users', 'error')
+  } finally {
+    isLoadingAdmins.value = false
+  }
+}
+
+const toggleAdminRole = async (user) => {
+  try {
+    // Check if role can be modified
+    if (!user.canModifyRole) {
+      showMessage('Admin roles cannot be changed for admin email addresses', 'error')
+      return
+    }
+
+    const newRole = user.role === 'admin' ? 'user' : 'admin'
+    const result = await updateUserRole(user.id, newRole, user.email)
+
+    if (result.success) {
+      showMessage(result.message, 'success')
+      await loadAdminUsers() // Refresh the list
+    } else {
+      showMessage(result.message, 'error')
+    }
+  } catch (error) {
+    console.error('Error toggling admin role:', error)
+    showMessage('Failed to update admin role', 'error')
+  }
+}
+
+const showMessage = (message, type) => {
+  adminMessage.value = message
+  adminMessageType.value = type
+  setTimeout(() => {
+    adminMessage.value = ''
+    adminMessageType.value = ''
+  }, 3000)
+}
+
+const openAdminManagement = async () => {
+  showAdminManagement.value = true
+  await loadAdminUsers()
+}
+
 const editUser = (user) => {
   // Edit user functionality - could open a modal or navigate to edit page
   console.log('Edit user:', user)
@@ -280,13 +344,12 @@ const editUser = (user) => {
 const deleteUser = async (user) => {
   if (confirm(`Are you sure you want to delete user: ${user.username}?`)) {
     try {
-      const result = await userManagementService.deleteUser(user.id)
+      // Call secure backend cleanup (deletes Auth user if exists + Firestore docs)
+      const result = await cleanupUserData(user.id)
+      alert(result.success ? 'User and data cleaned up successfully' : `Error: ${result.message}`)
       if (result.success) {
-        alert('User deleted successfully')
-        await loadUsers() // Refresh the user list
-        closeUserModal() // Close modal if open
-      } else {
-        alert(`Error: ${result.message}`)
+        await loadUsers()
+        closeUserModal()
       }
     } catch (error) {
       console.error('Error deleting user:', error)
@@ -334,11 +397,25 @@ const saveSecuritySettings = () => {
 }
 
 onMounted(async () => {
-  users.value = await userManagementService.getUsers()
+  // Set up real-time listener for users collection
+  usersUnsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+    users.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  })
 
-  // Fetch posts from Firestore
-  const snap = await getDocs(collection(db, 'posts'))
-  posts.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  // Set up real-time listener for posts collection
+  postsUnsubscribe = onSnapshot(collection(db, 'posts'), (snapshot) => {
+    posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  })
+})
+
+// Clean up the listeners when component is unmounted
+onUnmounted(() => {
+  if (usersUnsubscribe) {
+    usersUnsubscribe()
+  }
+  if (postsUnsubscribe) {
+    postsUnsubscribe()
+  }
 })
 </script>
 
@@ -659,97 +736,115 @@ onMounted(async () => {
         </div>
       </div>
     </section>
+
+    <!-- Admin Management Modal -->
+    <div v-if="showAdminManagement" class="modal-overlay" @click="showAdminManagement = false">
+      <div class="modal-dialog modal-lg" @click.stop>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-crown me-2"></i>
+              Admin Role Management
+            </h5>
+            <button type="button" class="btn-close" @click="showAdminManagement = false"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Message Display -->
+            <div
+              v-if="adminMessage"
+              :class="`alert alert-${adminMessageType === 'success' ? 'success' : 'danger'}`"
+            >
+              {{ adminMessage }}
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="isLoadingAdmins" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading users...</p>
+            </div>
+
+            <!-- Users List -->
+            <div v-else-if="adminUsers.length > 0" class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Current Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in adminUsers" :key="user.id">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-2">
+                          {{ (user.displayName || user.email || 'U').charAt(0).toUpperCase() }}
+                        </div>
+                        <div>
+                          <div class="fw-bold">{{ user.displayName || 'No Name' }}</div>
+                          <small class="text-muted">ID: {{ user.id }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                      <span :class="`badge ${getRoleBadgeClass(user.role)}`">
+                        {{ user.role || 'user' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        v-if="user.canModifyRole"
+                        @click="toggleAdminRole(user)"
+                        :class="`btn btn-sm ${user.role === 'admin' ? 'btn-warning' : 'btn-success'}`"
+                        :disabled="user.id === currentUser?.uid"
+                      >
+                        <i
+                          :class="`fas ${user.role === 'admin' ? 'fa-user-minus' : 'fa-user-plus'} me-1`"
+                        ></i>
+                        {{ user.role === 'admin' ? 'Remove Admin' : 'Make Admin' }}
+                      </button>
+                      <span v-else class="badge bg-secondary">
+                        <i class="fas fa-lock me-1"></i>
+                        Immutable
+                      </span>
+                      <small v-if="user.id === currentUser?.uid" class="text-muted d-block">
+                        (Cannot modify your own role)
+                      </small>
+                      <small v-else-if="!user.canModifyRole" class="text-muted d-block">
+                        (Admin email - role cannot be changed)
+                      </small>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- No Users State -->
+            <div v-else class="text-center py-4">
+              <i class="fas fa-users fa-3x text-muted mb-3"></i>
+              <p class="text-muted">No users found</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showAdminManagement = false">
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="loadAdminUsers"
+              :disabled="isLoadingAdmins"
+            >
+              <i class="fas fa-sync-alt me-1" :class="{ 'fa-spin': isLoadingAdmins }"></i>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.admin-dashboard {
-  background: linear-gradient(135deg, #f0fff4 0%, #e8f5e8 100%);
-  min-height: 100vh;
-}
-
-.section-title {
-  color: #2d5a3d;
-  font-weight: 600;
-}
-
-.btn-success {
-  background-color: #4caf50;
-  border-color: #4caf50;
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #45a049;
-  border-color: #45a049;
-}
-
-.btn-outline-primary {
-  color: #2d5a3d;
-  border-color: #2d5a3d;
-}
-
-.btn-outline-primary:hover {
-  background-color: #2d5a3d;
-  border-color: #2d5a3d;
-  color: white;
-}
-
-.btn-danger {
-  background-color: #f44336;
-  border-color: #f44336;
-}
-
-.btn-danger:hover {
-  background-color: #da190b;
-  border-color: #da190b;
-}
-
-.action-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(76, 175, 80, 0.1);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-
-.action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(76, 175, 80, 0.2);
-}
-
-.action-icon {
-  font-size: 2.5rem;
-  color: #4caf50;
-  margin-bottom: 1rem;
-}
-
-.settings-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
-}
-
-.modal-overlay {
-  background: rgba(45, 90, 61, 0.8);
-}
-
-.user-modal,
-.post-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
-}
-
-.loading-state,
-.no-users-state,
-.no-posts-state {
-  text-align: center;
-  padding: 3rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
-}
-</style>
