@@ -39,5 +39,10 @@ app.config.errorHandler = (err, instance, info) => {
 // Initialize security measures
 initializeSecurity()
 
+// Load migration utilities for development
+if (import.meta.env.DEV) {
+  import('./utils/runMigration.js')
+}
+
 app.use(router)
 app.mount('#app')

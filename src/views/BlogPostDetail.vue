@@ -45,7 +45,7 @@
               <h1 class="blog-title">{{ post.title }}</h1>
               <div class="blog-meta">
                 <span class="author">By {{ post.author }}</span>
-                <span class="date">{{ post.date }}</span>
+                <span class="date">{{ formatDate(post.publishedAt) }}</span>
               </div>
               <div class="blog-tags">
                 <span v-for="tag in post.tags" :key="tag" class="tag">
@@ -57,7 +57,11 @@
             <!-- Featured Image -->
             <div class="blog-image-container">
               <img
-                :src="`/images/blog/${post.image}`"
+                :src="
+                  post.image && (post.image.startsWith('http') || post.image.startsWith('data:'))
+                    ? post.image
+                    : `/images/blog/${post.image || '57.jpg'}`
+                "
                 :alt="post.title"
                 class="blog-featured-image"
                 @error="handleImageError"
@@ -70,7 +74,7 @@
               <p class="blog-excerpt">{{ post.excerpt }}</p>
 
               <!-- Extended content (first-person story) -->
-              <div class="blog-full-content" v-html="getStoryContent(post.id).content"></div>
+              <div class="blog-full-content" v-html="post.content"></div>
             </div>
 
             <!-- Rating System -->
@@ -78,18 +82,18 @@
               <!-- Current Rating Display -->
               <div class="current-rating">
                 <div class="rating-info">
-                  <span class="rating-score">{{ post.averageRating.toFixed(1) }}</span>
+                  <span class="rating-score">{{ (post.averageRating || 0).toFixed(1) }}</span>
                   <div class="rating-stars">
                     <span
                       v-for="star in 5"
                       :key="star"
                       class="star"
-                      :class="{ filled: star <= Math.round(post.averageRating) }"
+                      :class="{ filled: star <= Math.round(post.averageRating || 0) }"
                     >
                       ★
                     </span>
                   </div>
-                  <span class="rating-count">{{ post.ratingCount }} reviews</span>
+                  <span class="rating-count">{{ post.ratingCount || 0 }} reviews</span>
                 </div>
               </div>
 
@@ -102,8 +106,8 @@
                     :key="star"
                     class="rating-star"
                     :class="{
-                      active: star <= post.userRating,
-                      hover: star <= hoverRating && star > post.userRating,
+                      active: star <= (post.userRating || 0),
+                      hover: star <= hoverRating && star > (post.userRating || 0),
                     }"
                     @click="ratePost(post.id, star)"
                     @mouseenter="hoverRating = star"
@@ -112,9 +116,9 @@
                     ★
                   </span>
                 </div>
-                <div v-if="post.userRating > 0" class="user-rating-feedback">
-                  You rated this article {{ post.userRating }} star{{
-                    post.userRating !== 1 ? 's' : ''
+                <div v-if="(post.userRating || 0) > 0" class="user-rating-feedback">
+                  You rated this article {{ post.userRating || 0 }} star{{
+                    (post.userRating || 0) !== 1 ? 's' : ''
                   }}
                 </div>
               </div>
@@ -232,7 +236,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { allPosts, handleImageError, getStoryContent } from '../services/blogService'
+import { getPostById, handleImageError } from '../services/firestoreBlogService'
 import { getCurrentUser, isAuthenticated } from '../services/authService'
 
 const route = useRoute()
@@ -252,17 +256,36 @@ const newComment = ref({
 const currentUser = computed(() => getCurrentUser())
 const isLoggedIn = computed(() => isAuthenticated())
 
-onMounted(() => {
-  const postId = parseInt(route.params.id)
+// Format date for display
+const formatDate = (date) => {
+  if (!date) return 'N/A'
 
-  const foundPost = allPosts.value.find((p) => p.id === postId)
-  if (foundPost) {
-    post.value = foundPost
-    loading.value = false
+  const dateObj = date instanceof Date ? date : new Date(date)
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(dateObj)
+}
 
-    loadComments(postId)
-  } else {
-    // Handle case where post is not found
+onMounted(async () => {
+  const postId = route.params.id
+
+  try {
+    loading.value = true
+    const foundPost = await getPostById(postId)
+
+    if (foundPost && foundPost.status === 'published') {
+      post.value = foundPost
+      loading.value = false
+      loadComments(postId)
+    } else {
+      // Handle case where post is not found or not published
+      error.value = true
+      loading.value = false
+    }
+  } catch (err) {
+    console.error('Error loading post:', err)
     error.value = true
     loading.value = false
   }
@@ -358,24 +381,6 @@ const toggleDislike = (commentId) => {
   }
 }
 
-const formatDate = (date) => {
-  const now = new Date()
-  const commentDate = new Date(date)
-  const diffInSeconds = Math.floor((now - commentDate) / 1000)
-
-  if (diffInSeconds < 60) {
-    return 'Just now'
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60)
-    return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600)
-    return `${hours} hour${hours !== 1 ? 's' : ''} ago`
-  } else {
-    return commentDate.toLocaleDateString()
-  }
-}
-
 // Rating functionality
 const ratePost = (postId, rating) => {
   if (!isLoggedIn.value) return
@@ -385,13 +390,13 @@ const ratePost = (postId, rating) => {
     post.value.userRating = rating
 
     // Simulate updating average rating
-    const oldTotal = post.value.averageRating * post.value.ratingCount
+    const oldTotal = (post.value.averageRating || 0) * (post.value.ratingCount || 0)
     const newTotal = oldTotal + rating
-    post.value.ratingCount += 1
+    post.value.ratingCount = (post.value.ratingCount || 0) + 1
     post.value.averageRating = newTotal / post.value.ratingCount
 
     // Show feedback
-    // alert(`Thank you for rating this article ${rating} stars!`)
+    alert(`Thank you for rating this article ${rating} star${rating !== 1 ? 's' : ''}!`)
   }
 }
 </script>

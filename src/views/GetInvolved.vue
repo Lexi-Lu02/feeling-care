@@ -493,6 +493,9 @@ import {
   rateLimiter,
   generateCSRFToken,
 } from '../utils/security.js'
+import { createPost } from '../services/firestoreBlogService'
+import { getCurrentUser } from '../services/authService'
+import { imageUploadService } from '../services/imageUploadService'
 
 export default {
   name: 'GetInvolved',
@@ -682,7 +685,7 @@ export default {
       this.coverImagePreview = null
       this.$refs.imageInput.value = ''
     },
-    submitStory() {
+    async submitStory() {
       // Rate limiting check
       const userIdentifier = 'story-submission-' + (this.$store?.state?.user?.id || 'anonymous')
       if (!rateLimiter.isAllowed(userIdentifier)) {
@@ -734,21 +737,90 @@ export default {
       // Log sanitized data for debugging
       console.log('Sanitized form data:', sanitizedData)
 
-      let message = 'Thank you for sharing your story! '
+      // Store story in Firestore
+      try {
+        const currentUser = getCurrentUser()
+        const authorName = this.storyForm.anonymous
+          ? 'Anonymous'
+          : currentUser?.displayName || 'Guest User'
 
-      if (this.storyForm.type === 'text') {
-        message += 'Your written story will be reviewed and may be featured on our platform.'
-      } else if (this.storyForm.type === 'audio') {
-        message += 'Your audio story will be processed and may be featured on our platform.'
-      } else if (this.storyForm.type === 'video') {
-        message += 'Your video story will be processed and may be featured on our platform.'
+        // Upload cover image if provided
+        let imageUrl = null
+        let imagePath = null
+        if (this.coverImage) {
+          console.log('User authenticated:', !!currentUser)
+          console.log('User ID:', currentUser?.uid)
+          console.log('Starting image upload...')
+
+          const uploadResult = await imageUploadService.uploadImage(this.coverImage, 'blog-images')
+          console.log('Upload result:', uploadResult)
+
+          if (uploadResult.success) {
+            imageUrl = uploadResult.url
+            imagePath = uploadResult.path
+            console.log('Image upload successful, URL:', imageUrl)
+          } else {
+            console.error('Failed to upload cover image:', uploadResult.error)
+            // Continue without image rather than failing the entire submission
+          }
+        }
+
+        const postData = {
+          title: sanitizedData.title,
+          author: authorName,
+          authorId: currentUser?.uid || 'anonymous',
+          excerpt: sanitizedData.description || sanitizedData.content.substring(0, 200) + '...',
+          content: sanitizedData.content,
+          tags: [
+            'User Story',
+            'Community',
+            sanitizedData.type === 'text'
+              ? 'Written'
+              : sanitizedData.type === 'audio'
+                ? 'Audio'
+                : 'Video',
+          ],
+          image: imageUrl || '57.jpg', // Use uploaded image URL or default
+          imagePath: imagePath, // Store the storage path for potential deletion
+          status: 'draft', // Stories start as drafts for admin review
+          featured: false,
+          storyType: sanitizedData.type,
+          anonymous: sanitizedData.anonymous,
+          mediaFile: this.selectedFile ? this.selectedFile.name : null,
+          coverImage: this.coverImage ? this.coverImage.name : null,
+        }
+
+        const result = await createPost(postData)
+
+        if (result.success) {
+          let message =
+            'Thank you for sharing your story! Your story has been submitted and will be reviewed by our team. '
+
+          if (this.storyForm.type === 'text') {
+            message += 'Your written story will be reviewed and may be featured on our platform.'
+          } else if (this.storyForm.type === 'audio') {
+            message += 'Your audio story will be processed and may be featured on our platform.'
+          } else if (this.storyForm.type === 'video') {
+            message += 'Your video story will be processed and may be featured on our platform.'
+          }
+
+          if (this.coverImage && imageUrl) {
+            message += ' Your cover image has been uploaded successfully.'
+          } else if (this.coverImage && !imageUrl) {
+            message +=
+              ' Note: There was an issue uploading your cover image, but your story was saved.'
+          }
+
+          this.showSuccess(message)
+        } else {
+          this.showSuccess(
+            'Thank you for sharing your story! There was an issue saving it, but we have received your submission.',
+          )
+        }
+      } catch (error) {
+        console.error('Error saving story to Firestore:', error)
+        this.showSuccess('Thank you for sharing your story! Your submission has been received.')
       }
-
-      if (this.coverImage) {
-        message += ' Your cover image has also been uploaded.'
-      }
-
-      this.showSuccess(message)
 
       // Reset form
       this.storyForm = {
@@ -762,8 +834,12 @@ export default {
       this.selectedFile = null
       this.coverImage = null
       this.coverImagePreview = null
-      this.$refs.fileInput.value = ''
-      this.$refs.imageInput.value = ''
+      if (this.$refs.fileInput) {
+        this.$refs.fileInput.value = ''
+      }
+      if (this.$refs.imageInput) {
+        this.$refs.imageInput.value = ''
+      }
       this.formErrors = {}
     },
     showTerms() {

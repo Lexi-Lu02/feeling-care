@@ -57,8 +57,16 @@
               <!-- Post actions -->
               <div v-if="item.title" class="action-buttons">
                 <button
+                  v-if="item.status !== 'published'"
+                  @click.stop="$emit('publish-post', item)"
+                  class="btn btn-sm btn-success me-1"
+                  title="Publish Post"
+                >
+                  <i class="fas fa-check"></i>
+                </button>
+                <button
                   @click.stop="$emit('delete-post', item)"
-                  class="btn btn-sm btn-danger me-1"
+                  class="btn btn-sm btn-danger"
                   title="Delete Post"
                 >
                   <i class="fas fa-trash"></i>
@@ -130,7 +138,7 @@ export default {
       required: true,
     },
   },
-  emits: ['row-click', 'delete-post', 'edit-user-role', 'delete-user'],
+  emits: ['row-click', 'delete-post', 'edit-user-role', 'delete-user', 'publish-post'],
   setup(props, { emit }) {
     // Error boundary to catch and handle errors
     onErrorCaptured((error, instance, info) => {

@@ -154,3 +154,26 @@
     height: 120px;
   }
 }
+
+/* Blog Image Styles */
+.blog-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+}
+
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-size: 3rem;
+  background-color: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.card-image {
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}

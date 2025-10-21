@@ -74,7 +74,12 @@
               <div class="col-md-4">
                 <div class="post-image">
                   <img
-                    :src="`/images/blog/${post.image}`"
+                    :src="
+                      post.image &&
+                      (post.image.startsWith('http') || post.image.startsWith('data:'))
+                        ? post.image
+                        : `/images/blog/${post.image || '57.jpg'}`
+                    "
                     :alt="post.title"
                     @error="handleImageError"
                     class="post-image-img"
@@ -141,8 +146,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { allPosts, handleImageError } from '../services/blogService'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import {
+  getAllPosts,
+  initializePostsListener,
+  cleanupPostsListener,
+  handleImageError,
+} from '../services/firestoreBlogService'
+
+// Posts data
+const posts = ref([])
+const isLoading = ref(true)
+const error = ref(null)
 
 // Tags for filtering
 const tags = ref([
@@ -163,13 +178,29 @@ const selectedTags = ref([])
 const displayedPosts = ref(3)
 const hasMorePosts = ref(true)
 
+// Load posts from Firestore
+const loadPosts = async () => {
+  try {
+    isLoading.value = true
+    const allPosts = await getAllPosts()
+    // Filter for published posts only
+    posts.value = allPosts.filter((post) => post.status === 'published')
+  } catch (err) {
+    console.error('Error loading posts:', err)
+    error.value = err.message
+    posts.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // Filter posts based on selected tags
 const filteredPosts = computed(() => {
   if (selectedTags.value.length === 0) {
-    return allPosts.value.slice(0, displayedPosts.value)
+    return posts.value.slice(0, displayedPosts.value)
   }
 
-  const filtered = allPosts.value.filter((post) =>
+  const filtered = posts.value.filter((post) =>
     post.tags.some((tag) => selectedTags.value.includes(tag)),
   )
 
@@ -189,8 +220,22 @@ const toggleTag = (tag) => {
 // Load more posts
 const loadMorePosts = () => {
   displayedPosts.value += 3
-  if (displayedPosts.value >= allPosts.value.length) {
+  if (displayedPosts.value >= posts.value.length) {
     hasMorePosts.value = false
   }
 }
+
+// Initialize posts listener and load data
+onMounted(async () => {
+  // Initialize real-time listener for posts
+  initializePostsListener()
+
+  // Load initial data
+  await loadPosts()
+})
+
+// Clean up listener when component unmounts
+onUnmounted(() => {
+  cleanupPostsListener()
+})
 </script>

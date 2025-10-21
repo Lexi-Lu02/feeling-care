@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getFirestore, collection, getDocs, onSnapshot } from 'firebase/firestore'
+import { getFirestore, collection, onSnapshot } from 'firebase/firestore'
 import { initializeApp } from 'firebase/app'
 import { firebaseConfig } from '../services/firebaseService'
 import {
@@ -10,6 +10,16 @@ import {
   updateUserRole,
   cleanupUserData,
 } from '../services/authService'
+import {
+  createPost,
+  updatePost,
+  deletePost as deletePostFromFirestore,
+  initializePostsListener,
+  cleanupPostsListener,
+  allPosts,
+} from '../services/firestoreBlogService'
+import { imageUploadService } from '../services/imageUploadService'
+import { migratePostsToFirestore, checkMigrationStatus } from '../services/postMigration'
 import InteractiveTable from '../components/InteractiveTable.vue'
 
 // Initialize Firebase and Firestore
@@ -98,10 +108,8 @@ const selectedUser = ref(null)
 
 // Real-time listener unsubscribe functions
 let usersUnsubscribe = null
-let postsUnsubscribe = null
 
-// Posts Management Data
-const posts = ref([])
+// Posts Management Data - use allPosts from firestoreBlogService
 const isLoadingPosts = ref(false)
 const selectedPost = ref(null)
 
@@ -116,11 +124,14 @@ const userColumns = ref([
   { key: 'actions', label: 'Actions', sortable: false, searchable: false, type: 'actions' },
 ])
 
-// Posts table columns configuration - simplified and relevant
+// Posts table columns configuration - enhanced for better management
 const postColumns = ref([
   { key: 'title', label: 'Title', sortable: true, searchable: true },
-  { key: 'authorId', label: 'Author ID', sortable: true, searchable: true },
-  { key: 'createdAt', label: 'Created', sortable: true, searchable: true, type: 'date' },
+  { key: 'author', label: 'Author', sortable: true, searchable: true },
+  { key: 'status', label: 'Status', sortable: true, searchable: true },
+  { key: 'featured', label: 'Featured', sortable: true, searchable: false },
+  { key: 'tags', label: 'Tags', sortable: false, searchable: true },
+  { key: 'publishedAt', label: 'Published', sortable: true, searchable: true, type: 'date' },
   { key: 'actions', label: 'Actions', sortable: false, searchable: false, type: 'actions' },
 ])
 
@@ -150,48 +161,175 @@ const refreshUsers = () => {
 }
 
 // Posts management methods
-const loadPosts = async () => {
-  isLoadingPosts.value = true
-  try {
-    const snap = await getDocs(collection(db, 'posts'))
-    posts.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  } catch (error) {
-    console.error('Error loading posts:', error)
-  } finally {
-    isLoadingPosts.value = false
-  }
-}
-
 const refreshPosts = () => {
-  loadPosts()
+  // Force refresh by reinitializing the listener
+  initializePostsListener()
 }
 
 // Delete post functionality
 const deletePost = async (post) => {
   if (confirm(`Are you sure you want to delete post: "${post.title}"?`)) {
     try {
-      // Call Cloud Function to delete post
-      const response = await fetch(
-        'https://us-central1-assignment3-lanxin-lu-33912645.cloudfunctions.net/deletePost',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ postId: post.id }),
-        },
-      )
+      // Delete associated image from Firebase Storage if it exists
+      if (post.imagePath) {
+        const imageDeleteResult = await imageUploadService.deleteImage(post.imagePath)
+        if (!imageDeleteResult.success) {
+          console.warn('Failed to delete image from storage:', imageDeleteResult.error)
+          // Continue with post deletion even if image deletion fails
+        }
+      }
 
-      if (response.ok) {
+      const result = await deletePostFromFirestore(post.id)
+      if (result.success) {
         alert('Post deleted successfully')
-        await loadPosts() // Refresh the posts list
+        // Real-time listener will automatically update the posts list
       } else {
-        alert('Failed to delete post')
+        alert('Failed to delete post: ' + result.error)
       }
     } catch (error) {
       console.error('Error deleting post:', error)
       alert('Failed to delete post')
     }
+  }
+}
+
+// Publish post functionality
+const publishPost = async (post) => {
+  try {
+    const result = await updatePost(post.id, {
+      ...post,
+      status: 'published',
+      publishedAt: new Date(),
+    })
+    if (result.success) {
+      alert(
+        'Post published successfully! It will now be visible on the Information & Resources page.',
+      )
+      // Real-time listener will automatically update the posts list
+    } else {
+      alert('Failed to publish post: ' + result.error)
+    }
+  } catch (error) {
+    console.error('Error publishing post:', error)
+    alert('Failed to publish post')
+  }
+}
+
+// Post management modal state
+const showPostModal = ref(false)
+const isEditingPost = ref(false)
+const currentPost = ref({
+  title: '',
+  author: '',
+  authorId: '',
+  excerpt: '',
+  content: '',
+  tags: [],
+  image: '',
+  status: 'draft',
+  featured: false,
+})
+
+// Open post modal for editing
+const openPostModal = (post) => {
+  if (post) {
+    currentPost.value = { ...post }
+    isEditingPost.value = true
+  } else {
+    currentPost.value = {
+      title: '',
+      author: '',
+      authorId: getCurrentUser()?.uid || '',
+      excerpt: '',
+      content: '',
+      tags: [],
+      image: '',
+      status: 'draft',
+      featured: false,
+    }
+    isEditingPost.value = false
+  }
+  showPostModal.value = true
+}
+
+// Close post modal
+const closePostModal = () => {
+  showPostModal.value = false
+  currentPost.value = {
+    title: '',
+    author: '',
+    authorId: '',
+    excerpt: '',
+    content: '',
+    tags: [],
+    image: '',
+    status: 'draft',
+    featured: false,
+  }
+}
+
+// Save post (create or update)
+const savePost = async () => {
+  try {
+    if (!currentPost.value.title || !currentPost.value.excerpt) {
+      alert('Please fill in required fields (title and excerpt)')
+      return
+    }
+
+    let result
+    if (isEditingPost.value) {
+      result = await updatePost(currentPost.value.id, currentPost.value)
+    } else {
+      result = await createPost(currentPost.value)
+    }
+
+    if (result.success) {
+      alert(isEditingPost.value ? 'Post updated successfully' : 'Post created successfully')
+      closePostModal()
+      // Real-time listener will automatically update the posts list
+    } else {
+      alert('Failed to save post: ' + result.error)
+    }
+  } catch (error) {
+    console.error('Error saving post:', error)
+    alert('Failed to save post')
+  }
+}
+
+// Add tag to current post
+const addTag = () => {
+  const tagInput = document.getElementById('tagInput')
+  if (tagInput && tagInput.value.trim()) {
+    if (!currentPost.value.tags.includes(tagInput.value.trim())) {
+      currentPost.value.tags.push(tagInput.value.trim())
+    }
+    tagInput.value = ''
+  }
+}
+
+// Remove tag from current post
+const removeTag = (tagToRemove) => {
+  currentPost.value.tags = currentPost.value.tags.filter((tag) => tag !== tagToRemove)
+}
+
+// Check and run migration if needed
+const checkAndRunMigration = async () => {
+  try {
+    const status = await checkMigrationStatus()
+    if (status.needsMigration) {
+      console.log('Running posts migration...')
+      const result = await migratePostsToFirestore()
+      if (result.success) {
+        console.log('Migration completed successfully')
+        // Real-time listener will automatically update the posts list
+      } else {
+        console.error('Migration failed:', result.message)
+      }
+    } else {
+      console.log(`Posts already migrated. Found ${status.postCount} posts.`)
+    }
+  } catch (error) {
+    console.error('Error checking migration:', error)
   }
 }
 
@@ -266,7 +404,7 @@ const exportUsersCSV = () => {
 }
 
 const exportPostsCSV = () => {
-  exportToCSV(posts.value, 'posts.csv')
+  exportToCSV(allPosts.value, 'posts.csv')
 }
 
 const getRoleBadgeClass = (role) => {
@@ -305,15 +443,6 @@ const closeUserModal = () => {
   selectedUser.value = null
 }
 
-// Post modal methods
-const openPostModal = (post) => {
-  selectedPost.value = post
-}
-
-const closePostModal = () => {
-  selectedPost.value = null
-}
-
 // Date formatting method
 const formatDate = (date) => {
   if (!date) return 'N/A'
@@ -346,10 +475,11 @@ onMounted(async () => {
     })
   })
 
-  // Set up real-time listener for posts collection
-  postsUnsubscribe = onSnapshot(collection(db, 'posts'), (snapshot) => {
-    posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  })
+  // Check and run migration if needed
+  await checkAndRunMigration()
+
+  // Initialize posts listener
+  initializePostsListener()
 })
 
 // Clean up the listeners when component is unmounted
@@ -357,9 +487,7 @@ onUnmounted(() => {
   if (usersUnsubscribe) {
     usersUnsubscribe()
   }
-  if (postsUnsubscribe) {
-    postsUnsubscribe()
-  }
+  cleanupPostsListener()
 })
 </script>
 
@@ -476,8 +604,11 @@ onUnmounted(() => {
             <i class="fas fa-newspaper me-2"></i>
             Posts Management
           </h2>
-          <p class="section-description">Manage blog posts and content</p>
           <div class="section-actions">
+            <button @click="openPostModal()" class="btn btn-success me-2">
+              <i class="fas fa-plus me-1"></i>
+              Create Post
+            </button>
             <button
               @click="refreshPosts"
               class="btn btn-outline-primary me-2"
@@ -488,8 +619,8 @@ onUnmounted(() => {
             </button>
             <button
               @click="exportPostsCSV"
-              class="btn btn-success"
-              :disabled="!posts || posts.length === 0"
+              class="btn btn-info"
+              :disabled="!allPosts || allPosts.length === 0"
             >
               <i class="fas fa-download me-1"></i>
               Export CSV
@@ -506,12 +637,13 @@ onUnmounted(() => {
         </div>
 
         <!-- Interactive Posts Table -->
-        <div v-else-if="posts && posts.length > 0">
+        <div v-else-if="allPosts && allPosts.length > 0">
           <InteractiveTable
-            :data="posts"
+            :data="allPosts"
             :columns="postColumns"
             @row-click="openPostModal"
             @delete-post="deletePost"
+            @publish-post="publishPost"
           />
         </div>
 
@@ -692,5 +824,148 @@ onUnmounted(() => {
         </div>
       </div>
     </section>
+
+    <!-- Post Management Modal -->
+    <div v-if="showPostModal" class="modal-overlay" @click="closePostModal">
+      <div class="modal-dialog modal-xl" @click.stop>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-edit me-2"></i>
+              {{ isEditingPost ? 'Edit Post' : 'Create New Post' }}
+            </h5>
+            <button type="button" class="btn-close" @click="closePostModal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="savePost">
+              <div class="row">
+                <div class="col-md-8">
+                  <!-- Title -->
+                  <div class="mb-3">
+                    <label for="postTitle" class="form-label">Title *</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="postTitle"
+                      v-model="currentPost.title"
+                      required
+                    />
+                  </div>
+
+                  <!-- Author -->
+                  <div class="mb-3">
+                    <label for="postAuthor" class="form-label">Author</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="postAuthor"
+                      v-model="currentPost.author"
+                    />
+                  </div>
+
+                  <!-- Excerpt -->
+                  <div class="mb-3">
+                    <label for="postExcerpt" class="form-label">Excerpt *</label>
+                    <textarea
+                      class="form-control"
+                      id="postExcerpt"
+                      rows="3"
+                      v-model="currentPost.excerpt"
+                      required
+                    ></textarea>
+                  </div>
+
+                  <!-- Content -->
+                  <div class="mb-3">
+                    <label for="postContent" class="form-label">Content</label>
+                    <textarea
+                      class="form-control"
+                      id="postContent"
+                      rows="10"
+                      v-model="currentPost.content"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <!-- Status -->
+                  <div class="mb-3">
+                    <label for="postStatus" class="form-label">Status</label>
+                    <select class="form-select" id="postStatus" v-model="currentPost.status">
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+
+                  <!-- Featured -->
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="postFeatured"
+                        v-model="currentPost.featured"
+                      />
+                      <label class="form-check-label" for="postFeatured"> Featured Post </label>
+                    </div>
+                  </div>
+
+                  <!-- Image -->
+                  <div class="mb-3">
+                    <label for="postImage" class="form-label">Image</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="postImage"
+                      v-model="currentPost.image"
+                      placeholder="image.jpg"
+                    />
+                  </div>
+
+                  <!-- Tags -->
+                  <div class="mb-3">
+                    <label class="form-label">Tags</label>
+                    <div class="input-group mb-2">
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="tagInput"
+                        placeholder="Add tag"
+                        @keyup.enter="addTag"
+                      />
+                      <button class="btn btn-outline-secondary" type="button" @click="addTag">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+                    <div class="tags-container">
+                      <span
+                        v-for="tag in currentPost.tags"
+                        :key="tag"
+                        class="badge bg-primary me-1 mb-1"
+                      >
+                        {{ tag }}
+                        <button
+                          type="button"
+                          class="btn-close btn-close-white ms-1"
+                          @click="removeTag(tag)"
+                        ></button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closePostModal">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="savePost">
+              <i class="fas fa-save me-1"></i>
+              {{ isEditingPost ? 'Update Post' : 'Create Post' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

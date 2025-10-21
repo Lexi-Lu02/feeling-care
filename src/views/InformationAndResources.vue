@@ -30,21 +30,65 @@
           </div>
           <router-link to="/blogs" class="btn btn-outline-primary">See All →</router-link>
         </div>
-        <div class="row">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Loading blog posts...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="alert alert-warning" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          Unable to load blog posts. Please try again later.
+        </div>
+
+        <!-- Blogs Grid -->
+        <div v-else-if="blogs.length > 0" class="row">
           <div class="col-12 col-sm-6 col-lg-4" v-for="(blog, index) in blogs" :key="index">
             <div class="content-card">
-              <div class="card-image-placeholder">
-                <span>📝</span>
+              <div class="card-image">
+                <img
+                  :src="
+                    blog.image && (blog.image.startsWith('http') || blog.image.startsWith('data:'))
+                      ? blog.image
+                      : `/images/blog/${blog.image || '57.jpg'}`
+                  "
+                  :alt="blog.title"
+                  class="blog-image"
+                  @error="handleImageError"
+                />
+                <span v-if="!blog.image" class="fallback-icon">📝</span>
               </div>
               <div class="card-content">
                 <h3>{{ blog.title }}</h3>
-                <p>{{ blog.description }}</p>
+                <div class="blog-meta">
+                  <small class="text-muted">
+                    <i class="fas fa-user me-1"></i>{{ blog.author }}
+                    <span v-if="blog.date" class="ms-2">
+                      <i class="fas fa-calendar me-1"></i
+                      >{{ new Date(blog.date).toLocaleDateString() }}
+                    </span>
+                  </small>
+                </div>
                 <router-link :to="`/blogs/${blog.id}`" class="btn btn-primary"
                   >See More</router-link
                 >
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-5">
+          <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+          <h4>No blog posts available</h4>
+          <p class="text-muted">Check back later for new content!</p>
+          <button @click="runMigration" class="btn btn-primary mt-3" :disabled="isRunningMigration">
+            <i class="fas fa-sync-alt me-2" :class="{ 'fa-spin': isRunningMigration }"></i>
+            {{ isRunningMigration ? 'Loading Posts...' : 'Load Sample Posts' }}
+          </button>
         </div>
       </div>
     </section>
@@ -106,28 +150,63 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import {
+  getAllPosts,
+  initializePostsListener,
+  cleanupPostsListener,
+  handleImageError,
+} from '../services/firestoreBlogService'
+import { migratePostsToFirestore, checkMigrationStatus } from '../services/postMigration'
 
-const blogs = ref([
-  {
-    id: 1,
-    title: 'Understanding Anxiety in Youth',
-    description:
-      'Learn about the signs, symptoms, and effective coping strategies for managing anxiety in young people.',
-  },
-  {
-    id: 2,
-    title: 'Building Resilience Through Adversity',
-    description:
-      "Discover practical techniques to develop mental resilience and overcome life's challenges.",
-  },
-  {
-    id: 3,
-    title: 'Digital Wellbeing in the Modern Age',
-    description:
-      'Explore the impact of technology on mental health and strategies for maintaining digital balance.',
-  },
-])
+const blogs = ref([])
+const isLoading = ref(true)
+const error = ref(null)
+const isRunningMigration = ref(false)
+
+// Load published posts from Firestore
+const loadBlogs = async () => {
+  try {
+    isLoading.value = true
+    const allPosts = await getAllPosts()
+    console.log('All posts from Firestore:', allPosts)
+
+    // Filter for published posts and limit to 3 most recent for display
+    const publishedPosts = allPosts.filter((post) => post.status === 'published')
+    console.log('Published posts:', publishedPosts)
+
+    blogs.value = publishedPosts.slice(0, 3).map((post) => {
+      console.log('Processing post:', post.title, 'Image:', post.image ? 'Has image' : 'No image')
+      if (post.image) {
+        console.log(
+          'Image type:',
+          post.image.startsWith('data:')
+            ? 'base64'
+            : post.image.startsWith('http')
+              ? 'URL'
+              : 'local path',
+        )
+      }
+      return {
+        id: post.id,
+        title: post.title,
+        description: post.excerpt,
+        author: post.author,
+        date: post.publishedAt,
+        tags: post.tags,
+        image: post.image,
+      }
+    })
+    console.log('Final blogs array:', blogs.value)
+  } catch (err) {
+    console.error('Error loading blogs:', err)
+    error.value = err.message
+    // Fallback to empty array if there's an error
+    blogs.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const podcasts = ref([
   {
@@ -163,4 +242,51 @@ const videos = ref([
       'Guidance on developing and maintaining positive relationships with family and friends.',
   },
 ])
+
+// Run migration to load sample posts
+const runMigration = async () => {
+  try {
+    isRunningMigration.value = true
+    console.log('🚀 Starting migration...')
+
+    const status = await checkMigrationStatus()
+    console.log('Migration status:', status)
+
+    if (status.needsMigration) {
+      console.log('Running posts migration...')
+      const result = await migratePostsToFirestore()
+      if (result.success) {
+        console.log('✅ Migration completed successfully!')
+        // Reload blogs after migration
+        await loadBlogs()
+      } else {
+        console.error('❌ Migration failed:', result.message)
+        error.value = 'Migration failed: ' + result.message
+      }
+    } else {
+      console.log(`✅ Posts already migrated. Found ${status.postCount} posts.`)
+      // Reload blogs anyway
+      await loadBlogs()
+    }
+  } catch (err) {
+    console.error('❌ Error during migration:', err)
+    error.value = 'Error loading posts: ' + err.message
+  } finally {
+    isRunningMigration.value = false
+  }
+}
+
+// Initialize posts listener and load data
+onMounted(async () => {
+  // Initialize real-time listener for posts
+  initializePostsListener()
+
+  // Load initial data
+  await loadBlogs()
+})
+
+// Clean up listener when component unmounts
+onUnmounted(() => {
+  cleanupPostsListener()
+})
 </script>
