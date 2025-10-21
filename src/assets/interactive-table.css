@@ -26,8 +26,9 @@
 
 .global-search-input:focus {
   border-color: var(--bs-primary);
-  box-shadow: 0 0 0 3px rgba(101, 113, 102, 0.1);
-  outline: none;
+  box-shadow: 0 0 0 3px rgba(101, 113, 102, 0.25);
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
 }
 
 .global-search-input::placeholder {
@@ -70,6 +71,16 @@
   background-color: var(--light-sage);
 }
 
+.interactive-table th.sortable:focus {
+  background-color: var(--light-sage);
+  outline: 2px solid var(--bs-primary);
+  outline-offset: -2px;
+}
+
+.interactive-table th.sortable:focus-visible {
+  background-color: var(--light-sage);
+}
+
 .interactive-table th .fas {
   margin-left: 8px;
   color: var(--medium-sage);
@@ -100,8 +111,9 @@
 
 .column-search-input:focus {
   border-color: var(--bs-primary);
-  box-shadow: 0 0 0 2px rgba(101, 113, 102, 0.1);
-  outline: none;
+  box-shadow: 0 0 0 2px rgba(101, 113, 102, 0.25);
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 1px;
 }
 
 .column-search-input::placeholder {
@@ -132,6 +144,16 @@
 }
 
 .table-row-clickable:hover {
+  background-color: var(--pale-mint) !important;
+}
+
+.table-row-clickable:focus {
+  background-color: var(--pale-mint) !important;
+  outline: 2px solid var(--bs-primary);
+  outline-offset: -2px;
+}
+
+.table-row-clickable:focus-visible {
   background-color: var(--pale-mint) !important;
 }
 
@@ -197,6 +219,12 @@
   background: var(--bs-primary);
   color: white;
   transform: translateY(-1px);
+}
+
+.pagination-controls button:focus {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(101, 113, 102, 0.25);
 }
 
 .pagination-controls button:disabled {
@@ -287,5 +315,65 @@
   .pagination-controls button {
     padding: 8px 16px;
     font-size: 0.85rem;
+  }
+}
+
+/* Accessibility improvements */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .interactive-table th,
+  .interactive-table td {
+    border-color: #000;
+  }
+
+  .interactive-table th.sortable:focus,
+  .table-row-clickable:focus {
+    outline: 3px solid #000;
+  }
+
+  .pagination-controls button:focus {
+    outline: 3px solid #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .interactive-table th,
+  .table-row-clickable,
+  .pagination-controls button {
+    transition: none;
+  }
+
+  .pagination-controls button:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Action button accessibility */
+.action-buttons button:focus {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(101, 113, 102, 0.25);
+}
+
+.action-buttons button:hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-buttons button:hover {
+    transform: none;
   }
 }

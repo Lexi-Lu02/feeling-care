@@ -2,43 +2,63 @@
   <div class="interactive-table-container">
     <!-- Global Search Input -->
     <div class="table-controls">
+      <label for="global-search" class="visually-hidden">Search all table columns</label>
       <input
+        id="global-search"
         type="text"
         v-model="globalSearchTerm"
         placeholder="Search all columns..."
         class="form-control global-search-input"
+        aria-label="Search all table columns"
+        aria-describedby="search-help"
       />
+      <div id="search-help" class="visually-hidden">
+        Use this search to find content across all columns in the table
+      </div>
     </div>
 
     <table
       v-if="data && columns && data.length > 0 && columns.length > 0"
       class="interactive-table"
       :key="`table-${data?.length || 0}-${columns?.length || 0}`"
+      role="table"
+      aria-label="Data table with sortable columns and search functionality"
     >
       <thead>
-        <tr>
+        <tr role="row">
           <th
             v-for="col in columns"
             :key="col.key"
             @click="toggleSort(col.key)"
+            @keydown.enter="toggleSort(col.key)"
+            @keydown.space.prevent="toggleSort(col.key)"
             :class="{ sortable: col.sortable }"
+            role="columnheader"
+            :tabindex="col.sortable ? 0 : -1"
+            :aria-sort="getAriaSort(col.key)"
+            :aria-label="getColumnHeaderLabel(col)"
           >
             {{ col.label }}
-            <span v-if="sortColumn === col.key">
+            <span v-if="sortColumn === col.key" aria-hidden="true">
               <i :class="['fas', sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
             </span>
-            <span v-else-if="col.sortable"><i class="fas fa-sort"></i></span>
+            <span v-else-if="col.sortable" aria-hidden="true"><i class="fas fa-sort"></i></span>
           </th>
         </tr>
         <!-- Individual Column Search Row -->
-        <tr class="column-search-row">
-          <th v-for="col in columns" :key="col.key">
+        <tr class="column-search-row" role="row">
+          <th v-for="col in columns" :key="col.key" role="columnheader">
+            <label v-if="col.searchable" :for="`search-${col.key}`" class="visually-hidden">
+              Search {{ col.label }}
+            </label>
             <input
               v-if="col.searchable"
+              :id="`search-${col.key}`"
               type="text"
               v-model="columnSearchTerms[col.key]"
               :placeholder="`Search ${col.label}`"
               class="form-control column-search-input"
+              :aria-label="`Search ${col.label}`"
             />
           </th>
         </tr>
@@ -48,53 +68,60 @@
           v-for="(item, index) in paginatedData"
           :key="item?.id || `row-${index}`"
           @click="handleRowClick(item)"
+          @keydown.enter="handleRowClick(item)"
+          @keydown.space.prevent="handleRowClick(item)"
           class="table-row-clickable"
+          role="row"
+          :tabindex="0"
+          :aria-label="getRowLabel(item, index)"
         >
-          <td v-for="col in columns" :key="col.key">
+          <td v-for="col in columns" :key="col.key" role="cell">
             <span v-if="col.type === 'date'">{{ formatDate(item?.[col.key]) }}</span>
             <span v-else-if="col.type === 'time'">{{ formatTime(item?.[col.key]) }}</span>
             <span v-else-if="col.type === 'actions'">
               <!-- Post actions -->
-              <div v-if="item.title" class="action-buttons">
+              <div v-if="item.title" class="action-buttons" role="group" aria-label="Post actions">
                 <button
                   v-if="item.status !== 'published'"
                   @click.stop="$emit('publish-post', item)"
                   class="btn btn-sm btn-success me-1"
-                  title="Publish Post"
+                  :aria-label="`Publish post: ${item.title}`"
                 >
-                  <i class="fas fa-check"></i>
+                  <i class="fas fa-check" aria-hidden="true"></i>
                 </button>
                 <button
                   @click.stop="$emit('delete-post', item)"
                   class="btn btn-sm btn-danger"
-                  title="Delete Post"
+                  :aria-label="`Delete post: ${item.title}`"
                 >
-                  <i class="fas fa-trash"></i>
+                  <i class="fas fa-trash" aria-hidden="true"></i>
                 </button>
               </div>
               <!-- User actions -->
-              <div v-if="item.email" class="action-buttons">
+              <div v-if="item.email" class="action-buttons" role="group" aria-label="User actions">
                 <button
                   @click.stop="$emit('edit-user-role', item)"
                   class="btn btn-sm btn-primary me-1"
-                  title="Edit User"
+                  :aria-label="`Edit user: ${item.email || item.displayName}`"
                 >
-                  <i class="fas fa-edit"></i>
+                  <i class="fas fa-edit" aria-hidden="true"></i>
                 </button>
                 <button
                   @click.stop="$emit('delete-user', item)"
                   class="btn btn-sm btn-danger"
-                  title="Delete User"
+                  :aria-label="`Delete user: ${item.email || item.displayName}`"
                 >
-                  <i class="fas fa-trash"></i>
+                  <i class="fas fa-trash" aria-hidden="true"></i>
                 </button>
               </div>
             </span>
             <span v-else>{{ item?.[col.key] || '' }}</span>
           </td>
         </tr>
-        <tr v-if="paginatedData.length === 0">
-          <td :colspan="columns.length" class="no-data">No data found.</td>
+        <tr v-if="paginatedData.length === 0" role="row">
+          <td :colspan="columns.length" class="no-data" role="cell">
+            <span role="status" aria-live="polite">No data found.</span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -105,21 +132,27 @@
     </div>
 
     <!-- Pagination Controls -->
-    <div class="pagination-controls">
-      <button @click="prevPage" :disabled="currentPage === 1" class="btn btn-outline-primary">
-        <i class="fas fa-chevron-left me-1"></i>Previous
+    <nav class="pagination-controls" role="navigation" aria-label="Table pagination">
+      <button
+        @click="prevPage"
+        :disabled="currentPage === 1"
+        class="btn btn-outline-primary"
+        :aria-label="`Go to previous page, page ${currentPage - 1}`"
+      >
+        <i class="fas fa-chevron-left me-1" aria-hidden="true"></i>Previous
       </button>
-      <span class="pagination-info">
+      <span class="pagination-info" aria-live="polite" aria-atomic="true">
         Page {{ currentPage }} of {{ totalPages }} ({{ filteredData?.length || 0 }} total items)
       </span>
       <button
         @click="nextPage"
         :disabled="currentPage === totalPages"
         class="btn btn-outline-primary"
+        :aria-label="`Go to next page, page ${currentPage + 1}`"
       >
-        Next<i class="fas fa-chevron-right ms-1"></i>
+        Next<i class="fas fa-chevron-right ms-1" aria-hidden="true"></i>
       </button>
-    </div>
+    </nav>
   </div>
 </template>
 
@@ -335,6 +368,38 @@ export default {
       }
     }
 
+    // Accessibility helper methods
+    const getAriaSort = (columnKey) => {
+      if (sortColumn.value !== columnKey) return 'none'
+      return sortDirection.value === 'asc' ? 'ascending' : 'descending'
+    }
+
+    const getColumnHeaderLabel = (col) => {
+      let label = col.label
+      if (col.sortable) {
+        label += '. Click to sort'
+        if (sortColumn.value === col.key) {
+          label += `. Currently sorted ${sortDirection.value === 'asc' ? 'ascending' : 'descending'}`
+        }
+      }
+      return label
+    }
+
+    const getRowLabel = (item, index) => {
+      const labels = []
+      // Get key identifying information from the item
+      if (item.title) labels.push(`Post: ${item.title}`)
+      if (item.email) labels.push(`User: ${item.email}`)
+      if (item.displayName && !item.email) labels.push(`User: ${item.displayName}`)
+
+      if (labels.length === 0) {
+        labels.push(`Row ${index + 1}`)
+      }
+
+      labels.push(`Click to view details`)
+      return labels.join('. ')
+    }
+
     return {
       currentPage,
       sortColumn,
@@ -350,6 +415,9 @@ export default {
       handleRowClick,
       formatDate,
       formatTime,
+      getAriaSort,
+      getColumnHeaderLabel,
+      getRowLabel,
     }
   },
 }

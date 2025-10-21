@@ -118,12 +118,15 @@
 
 /* Large icon for Get Support Today card */
 .large-card .card-icon {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-bottom: 20px;
-  margin-top: 80px;
+  z-index: 1;
 }
 
 .card-icon-image.large-icon {
@@ -268,17 +271,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding: 40px 20px;
+  position: relative;
 }
 
 .large-card .card-title {
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   font-size: 1.8rem;
-  margin-top: 220px;
+  margin-top: 0;
 }
 
 .large-card .card-text {
+  margin-top: 220px;
   margin-bottom: 30px;
   max-width: 400px;
   line-height: 1.6;
@@ -291,6 +296,19 @@
   padding: 25px;
   margin-bottom: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.small-card .card-icon {
+  position: absolute;
+  top: 50%;
+  right: 60px;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  margin-bottom: 0;
 }
 
 .mini-card {
@@ -315,18 +333,24 @@
   justify-content: space-between;
   align-items: center;
   text-align: center;
+  position: relative;
 }
 
 .mini-card .card-title {
-  margin-top: 120px;
+  margin-top: 10px;
+  margin-bottom: 15px;
 }
 
 .mini-card .card-icon {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-top: 20px;
+  z-index: 1;
 }
 
 /* Responsive Data Icons */
@@ -356,14 +380,27 @@
   }
 
   .mini-card .card-icon {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
+    z-index: 1;
   }
 
   .large-card .card-icon {
-    margin-bottom: 15px;
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    z-index: 1;
   }
 
   .card-icon-image.large-icon {
@@ -376,10 +413,11 @@
   .large-card .card-title {
     font-size: 1.6rem;
     margin-bottom: 25px;
-    margin-top: 60px;
+    margin-top: 0;
   }
 
   .large-card .card-text {
+    margin-top: 150px;
     max-width: 350px;
     margin-bottom: 30px;
   }
@@ -391,6 +429,10 @@
   .info-resources-icon-image {
     width: 120px !important;
     height: 120px !important;
+  }
+
+  .small-card .card-icon {
+    right: 45px;
   }
 
   .info-resources-card .card-title {
@@ -488,14 +530,27 @@
   }
 
   .mini-card .card-icon {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
+    z-index: 1;
   }
 
   .large-card .card-icon {
-    margin-bottom: 15px;
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    z-index: 1;
   }
 
   .card-icon-image.large-icon {
@@ -508,10 +563,11 @@
   .large-card .card-title {
     font-size: 1.4rem;
     margin-bottom: 25px;
-    margin-top: 50px;
+    margin-top: 0;
   }
 
   .large-card .card-text {
+    margin-top: 120px;
     max-width: 300px;
     margin-bottom: 30px;
   }
@@ -523,6 +579,10 @@
   .info-resources-icon-image {
     width: 100px !important;
     height: 100px !important;
+  }
+
+  .small-card .card-icon {
+    right: 35px;
   }
 
   .info-resources-card .card-title {

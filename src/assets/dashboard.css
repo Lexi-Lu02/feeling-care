@@ -609,27 +609,7 @@
   font-size: 0.95rem;
 }
 
-.profile-edit .form-control,
-.profile-edit .form-select {
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
-}
-
-.profile-edit .form-control:focus,
-.profile-edit .form-select:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(101, 113, 102, 0.25);
-  outline: none;
-}
-
-.profile-edit .form-control:read-only {
-  background-color: var(--pale-green);
-  opacity: 0.8;
-  cursor: not-allowed;
-}
+/* Form control styles inherited from components.css */
 
 .profile-edit .btn {
   min-width: 120px;
@@ -639,17 +619,7 @@
   transition: all 0.3s ease;
 }
 
-.profile-edit .btn-primary {
-  background: var(--bs-primary);
-  border-color: var(--bs-primary);
-}
-
-.profile-edit .btn-primary:hover {
-  background: #4a5d4a;
-  border-color: #4a5d4a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(101, 113, 102, 0.3);
-}
+/* Button styles inherited from components.css */
 
 .profile-edit .btn-secondary {
   background: #6c757d;

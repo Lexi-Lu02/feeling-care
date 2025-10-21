@@ -1,7 +1,7 @@
 :root {
-  /* Primary color - Dark muted green for navbar and headings */
-  --bs-primary: #657166;
-  --bs-primary-rgb: 101, 113, 102;
+  /* Primary color - Dark muted green for navbar and headings (WCAG AA compliant) */
+  --bs-primary: #4a5a4a;
+  --bs-primary-rgb: 74, 90, 74;
 
   /* Secondary colors from the palette */
   --light-blue: #99cdd8;
@@ -9,19 +9,15 @@
   --light-peach: #fde8d3;
   --muted-rose: #f3c3b2;
   --light-sage: #cfd8c4;
-  --medium-sage: #a9b4a3;
+  --medium-sage: #8a9688;
   --pale-green: #ecf2ee;
   --pale-pink: #f9f3ef;
-  --error-red: #dc3545;
-  --warning-yellow: #ffc107;
+  --error-red: #b98080;
+  --warning-yellow: #c6965f;
+  --bs-success: #435f4d;
+  --bs-info: #567787;
   --white: #ffffff;
   --black: #000000;
-
-  /* Google brand colors for authentication */
-  --google-blue: #4285f4;
-  --google-green: #34a853;
-  --google-red: #ea4335;
-  --google-yellow: #fbbc05;
 }
 
 /* Custom background color for the main content area */

@@ -196,142 +196,179 @@ onMounted(() => {
 
 <template>
   <div class="auth-page">
-    <div class="container">
-      <div class="row justify-content-center align-items-center min-vh-100">
-        <div class="col-lg-5 col-md-7 col-sm-9">
-          <div class="auth-container">
-            <!-- Header Section -->
-            <div class="auth-header">
-              <div class="auth-icon">
-                <img
-                  src="/images/icon/mental-health.png"
-                  alt="Feeling Care"
-                  class="auth-icon-image"
-                />
-              </div>
-              <h1 class="auth-title">{{ isLogin ? 'Welcome Back' : 'Join Our Community' }}</h1>
-              <p class="auth-subtitle">
-                {{
-                  isLogin
-                    ? 'Sign in to continue your wellness journey'
-                    : 'Start your mental health journey with us'
-                }}
-              </p>
-            </div>
-
-            <!-- Form Section -->
-            <div class="auth-form-container">
-              <form @submit.prevent="handleSubmit" class="auth-form">
-                <div v-if="!isLogin" class="form-group">
-                  <label class="form-label">Display Name</label>
-                  <div class="input-wrapper">
-                    <i class="fas fa-user input-icon"></i>
-                    <input
-                      v-model="username"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors.username }"
-                      placeholder="Enter your display name"
-                    />
-                  </div>
-                  <div class="invalid-feedback">{{ errors.username }}</div>
+    <main id="main-content">
+      <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+          <div class="col-lg-5 col-md-7 col-sm-9">
+            <div class="auth-container">
+              <!-- Header Section -->
+              <div class="auth-header">
+                <div class="auth-icon">
+                  <img
+                    src="/images/icon/mental-health.png"
+                    alt="Mental health support icon"
+                    class="auth-icon-image"
+                  />
                 </div>
-
-                <div class="form-group">
-                  <label class="form-label">Email Address</label>
-                  <div class="input-wrapper">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input
-                      v-model="email"
-                      type="email"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors.email }"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  <div class="invalid-feedback">{{ errors.email }}</div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Password</label>
-                  <div class="input-wrapper">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input
-                      v-model="password"
-                      type="password"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors.password }"
-                      placeholder="Enter your password"
-                    />
-                  </div>
-                  <div class="invalid-feedback">{{ errors.password }}</div>
-                </div>
-
-                <div v-if="!isLogin" class="form-group">
-                  <label class="form-label">I am seeking help for:</label>
-                  <select
-                    v-model="selectedRole"
-                    class="form-select"
-                    :class="{ 'is-invalid': errors.role }"
-                  >
-                    <option value="">Select an option</option>
-                    <option value="myself">Myself</option>
-                    <option value="someone-else">Someone else</option>
-                  </select>
-                  <div class="invalid-feedback">{{ errors.role }}</div>
-                </div>
-
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary btn-submit" :disabled="isLoading">
-                    <span
-                      v-if="isLoading"
-                      class="spinner-border spinner-border-sm me-2"
-                      role="status"
-                    ></span>
-                    {{ isLoading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account' }}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-outline-secondary btn-clear"
-                    @click="clearForm"
-                  >
-                    <i class="fas fa-eraser me-2"></i>Clear
-                  </button>
-                </div>
-              </form>
-
-              <!-- Error Message -->
-              <div v-if="firebaseError" class="alert alert-error">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                {{ firebaseError }}
-              </div>
-
-              <!-- Divider -->
-              <div class="divider">
-                <span>or</span>
-              </div>
-
-              <!-- Google Sign In -->
-              <div class="google-signin">
-                <button @click="signInWithGoogle" class="btn btn-google">
-                  <img src="/images/third party/google.png" alt="Google" class="google-icon" />
-                  Continue with Google
-                </button>
-              </div>
-
-              <!-- Switch Mode -->
-              <div class="auth-switch">
-                <p>
-                  {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
-                  <a href="#" @click.prevent="isLogin = !isLogin" class="switch-link">
-                    {{ isLogin ? 'Sign up here' : 'Sign in here' }}
-                  </a>
+                <h1 class="auth-title">{{ isLogin ? 'Welcome Back' : 'Join Our Community' }}</h1>
+                <p class="auth-subtitle">
+                  {{
+                    isLogin
+                      ? 'Sign in to continue your wellness journey'
+                      : 'Start your mental health journey with us'
+                  }}
                 </p>
+              </div>
+
+              <!-- Form Section -->
+              <div class="auth-form-container">
+                <form @submit.prevent="handleSubmit" class="auth-form">
+                  <div v-if="!isLogin" class="form-group">
+                    <label for="username" class="form-label">Display Name</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-user input-icon" aria-hidden="true"></i>
+                      <input
+                        id="username"
+                        v-model="username"
+                        class="form-control"
+                        :class="{ 'is-invalid': errors.username }"
+                        placeholder="Enter your display name"
+                        aria-describedby="usernameError"
+                        aria-invalid="errors.username ? 'true' : 'false'"
+                      />
+                    </div>
+                    <div id="usernameError" class="invalid-feedback" role="alert">
+                      {{ errors.username }}
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
+                      <input
+                        id="email"
+                        v-model="email"
+                        type="email"
+                        class="form-control"
+                        :class="{ 'is-invalid': errors.email }"
+                        placeholder="Enter your email"
+                        aria-describedby="emailError"
+                        aria-invalid="errors.email ? 'true' : 'false'"
+                      />
+                    </div>
+                    <div id="emailError" class="invalid-feedback" role="alert">
+                      {{ errors.email }}
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-lock input-icon" aria-hidden="true"></i>
+                      <input
+                        id="password"
+                        v-model="password"
+                        type="password"
+                        class="form-control"
+                        :class="{ 'is-invalid': errors.password }"
+                        placeholder="Enter your password"
+                        aria-describedby="passwordError"
+                        aria-invalid="errors.password ? 'true' : 'false'"
+                      />
+                    </div>
+                    <div id="passwordError" class="invalid-feedback" role="alert">
+                      {{ errors.password }}
+                    </div>
+                  </div>
+
+                  <div v-if="!isLogin" class="form-group">
+                    <label for="role" class="form-label">I am seeking help for:</label>
+                    <select
+                      id="role"
+                      v-model="selectedRole"
+                      class="form-select"
+                      :class="{ 'is-invalid': errors.role }"
+                      aria-describedby="roleError"
+                      aria-invalid="errors.role ? 'true' : 'false'"
+                    >
+                      <option value="">Select an option</option>
+                      <option value="myself">Myself</option>
+                      <option value="someone-else">Someone else</option>
+                    </select>
+                    <div id="roleError" class="invalid-feedback" role="alert">
+                      {{ errors.role }}
+                    </div>
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      type="submit"
+                      class="btn btn-primary btn-submit"
+                      :disabled="isLoading"
+                      aria-label="Submit the form"
+                    >
+                      <span
+                        v-if="isLoading"
+                        class="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      {{ isLoading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-clear"
+                      @click="clearForm"
+                      aria-label="Clear all form fields"
+                    >
+                      <i class="fas fa-eraser me-2" aria-hidden="true"></i>Clear
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Error Message -->
+                <div v-if="firebaseError" class="alert alert-error" role="alert">
+                  <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>
+                  {{ firebaseError }}
+                </div>
+
+                <!-- Divider -->
+                <div class="divider" role="separator" aria-label="Alternative sign-in options">
+                  <span>or</span>
+                </div>
+
+                <!-- Google Sign In -->
+                <div class="google-signin">
+                  <button
+                    @click="signInWithGoogle"
+                    class="btn btn-google"
+                    aria-label="Continue with Google"
+                  >
+                    <img
+                      src="/images/third party/google.png"
+                      alt="Google logo"
+                      class="google-icon"
+                    />
+                    Continue with Google
+                  </button>
+                </div>
+
+                <!-- Switch Mode -->
+                <div class="auth-switch">
+                  <p>
+                    {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
+                    <a href="#" @click.prevent="isLogin = !isLogin" class="switch-link">
+                      {{ isLogin ? 'Sign up here' : 'Sign in here' }}
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 

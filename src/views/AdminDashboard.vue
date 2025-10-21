@@ -580,7 +580,7 @@ onUnmounted(() => {
             Posts Management
           </h2>
           <div class="section-actions">
-            <button @click="openPostModal()" class="btn btn-success me-2">
+            <button @click="openPostModal()" class="btn btn-outline-primary me-2">
               <i class="fas fa-plus me-1"></i>
               Create Post
             </button>
@@ -594,7 +594,7 @@ onUnmounted(() => {
             </button>
             <button
               @click="exportPostsCSV"
-              class="btn btn-info"
+              class="btn btn-success"
               :disabled="!allPosts || allPosts.length === 0"
             >
               <i class="fas fa-download me-1"></i>

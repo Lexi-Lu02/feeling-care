@@ -39,14 +39,21 @@ const logout = () => {
 
 <template>
   <nav
+    id="main-navigation"
     class="navbar navbar-expand-lg navbar-dark bg-primary"
     style="position: relative; z-index: 1000"
+    role="navigation"
+    aria-label="Main navigation"
   >
     <div class="container-fluid">
       <!-- Logo -->
       <div class="logo-container">
-        <router-link to="/" class="navbar-brand">
-          <img src="/images/icon/mental-health.png" alt="Feeling Care Logo" class="logo-image" />
+        <router-link to="/" class="navbar-brand" aria-label="Feeling Care - Go to homepage">
+          <img
+            src="/images/icon/mental-health.png"
+            alt="Mental health support icon"
+            class="logo-image"
+          />
           <span class="logo-text">Feeling Care</span>
         </router-link>
       </div>
@@ -87,21 +94,47 @@ const logout = () => {
         <!-- Search Bar and Login -->
         <div class="navbar-right">
           <div class="search-container">
-            <img src="/images/icon/loupe.png" alt="Search" class="search-icon" />
-            <input type="text" class="search-input" placeholder="Search" />
+            <label for="navbar-search" class="visually-hidden">Search the site</label>
+            <img
+              src="/images/icon/loupe.png"
+              alt="Search magnifying glass icon"
+              class="search-icon"
+            />
+            <input
+              type="text"
+              id="navbar-search"
+              class="search-input"
+              placeholder="Search"
+              aria-label="Search the site"
+            />
           </div>
           <template v-if="currentUser">
             <div class="user-menu">
               <span class="user-info">{{ currentUser.displayName || currentUser.email }}</span>
-              <router-link class="nav-link" :to="dashboardRoute" active-class="active">
-                <i class="fas fa-tachometer-alt me-1"></i>
+              <router-link
+                class="nav-link"
+                :to="dashboardRoute"
+                active-class="active"
+                aria-label="Go to dashboard"
+              >
+                <i class="fas fa-tachometer-alt me-1" aria-hidden="true"></i>
                 Dashboard
               </router-link>
-              <button @click="logout" class="btn btn-outline-danger btn-sm">Logout</button>
+              <button
+                @click="logout"
+                class="btn btn-outline-danger btn-sm"
+                aria-label="Logout from your account"
+              >
+                Logout
+              </button>
             </div>
           </template>
           <template v-else>
-            <router-link class="nav-link" to="/auth" active-class="active"
+            <router-link
+              class="nav-link"
+              to="/auth"
+              active-class="active"
+              aria-label="Login or sign up for an account"
               >Login / Sign Up</router-link
             >
           </template>
