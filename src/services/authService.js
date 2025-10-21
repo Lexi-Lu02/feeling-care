@@ -148,13 +148,16 @@ export const getAllUsers = async () => {
     // Get ID token for authentication
     const idToken = await user.getIdToken()
 
-    const response = await fetch('https://listusers-rfheamm3sa-uc.a.run.app', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://us-central1-assignment3-lanxin-lu-33912645.cloudfunctions.net/listUsers',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
       },
-    })
+    )
 
     if (!response.ok) {
       throw new Error('Failed to fetch users')
@@ -182,17 +185,20 @@ export const updateUserRole = async (userId, newRole) => {
     // Get ID token for authentication
     const idToken = await user.getIdToken()
 
-    const response = await fetch('https://updateuserrole-rfheamm3sa-uc.a.run.app', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://us-central1-assignment3-lanxin-lu-33912645.cloudfunctions.net/updateUserRole',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          newRole,
+        }),
       },
-      body: JSON.stringify({
-        userId,
-        newRole,
-      }),
-    })
+    )
 
     const result = await response.json()
 
@@ -215,13 +221,16 @@ export const verifyAdminStatus = async () => {
     // Get ID token for authentication
     const idToken = await user.getIdToken()
 
-    const response = await fetch('https://verifyadmin-rfheamm3sa-uc.a.run.app', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://us-central1-assignment3-lanxin-lu-33912645.cloudfunctions.net/verifyAdmin',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
       },
-    })
+    )
 
     if (!response.ok) {
       return { isAdmin: false, role: 'user' }
@@ -241,14 +250,17 @@ export const cleanupUserData = async (userId) => {
     if (!user) return { success: false, message: 'Not authenticated' }
 
     const idToken = await user.getIdToken()
-    const response = await fetch('https://cleanupuserdata-rfheamm3sa-uc.a.run.app', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      'https://us-central1-assignment3-lanxin-lu-33912645.cloudfunctions.net/cleanupUserData',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
       },
-      body: JSON.stringify({ userId }),
-    })
+    )
 
     const result = await response.json().catch(() => ({}))
     if (!response.ok) {

@@ -30,7 +30,10 @@ const firebaseError = ref('')
 
 // Validation schemas
 const signupSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters')
+    .max(50, 'Display name must be less than 50 characters'),
   email: z.string().email('Invalid email'),
   password: z
     .string()
@@ -123,22 +126,29 @@ async function signUpWithFirebase() {
     const res = await createUserWithEmailAndPassword(auth, email.value, password.value)
     const user = res.user
 
-    // Optional: set display name
+    // Set display name in Firebase Auth immediately
     if (username.value) {
       await updateProfile(user, { displayName: username.value })
     }
 
-    // Create Firestore user document - role will be set by Firebase Functions
-    await setDoc(doc(db, 'users', user.uid), {
-      uid: user.uid,
-      email: user.email,
-      displayName: username.value || '',
-      role: selectedRole.value, // This will be overridden by Firebase Functions for admin emails
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+    // Check if this is an admin email
+    const isAdminEmail = user.email?.toLowerCase() === 'admin@feelingcare.com'
 
-    console.log('User created and synced with Firestore')
+    // Create the user document in Firestore immediately with all the correct data
+    // The Firebase Function will respect this data and not overwrite it
+    await setDoc(
+      doc(db, 'users', user.uid),
+      {
+        uid: user.uid,
+        email: user.email,
+        displayName: username.value || '',
+        role: isAdminEmail ? 'admin' : selectedRole.value,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    )
+
     await firebaseSignOut(auth) // logout immediately
     firebaseUser.value = null
     clearForm()
@@ -213,14 +223,14 @@ onMounted(() => {
             <div class="auth-form-container">
               <form @submit.prevent="handleSubmit" class="auth-form">
                 <div v-if="!isLogin" class="form-group">
-                  <label class="form-label">Username</label>
+                  <label class="form-label">Display Name</label>
                   <div class="input-wrapper">
                     <i class="fas fa-user input-icon"></i>
                     <input
                       v-model="username"
                       class="form-control"
                       :class="{ 'is-invalid': errors.username }"
-                      placeholder="Enter your username"
+                      placeholder="Enter your display name"
                     />
                   </div>
                   <div class="invalid-feedback">{{ errors.username }}</div>

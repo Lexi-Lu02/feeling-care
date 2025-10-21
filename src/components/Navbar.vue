@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { isAdmin } from '../services/authService'
 
 // Define component name to fix linter error
 defineOptions({
@@ -9,16 +10,29 @@ defineOptions({
 
 const auth = getAuth()
 const currentUser = ref(null)
+const userIsAdmin = ref(false)
 
-onMounted(() => {
-  onAuthStateChanged(auth, (user) => {
+onMounted(async () => {
+  onAuthStateChanged(auth, async (user) => {
     currentUser.value = user
+    if (user) {
+      // Check if user is admin
+      userIsAdmin.value = await isAdmin()
+    } else {
+      userIsAdmin.value = false
+    }
   })
+})
+
+// Computed property to determine dashboard route
+const dashboardRoute = computed(() => {
+  return userIsAdmin.value ? '/admin' : '/dashboard'
 })
 
 const logout = () => {
   auth.signOut()
   currentUser.value = null
+  userIsAdmin.value = false
   window.location.reload()
 }
 </script>
@@ -79,7 +93,7 @@ const logout = () => {
           <template v-if="currentUser">
             <div class="user-menu">
               <span class="user-info">{{ currentUser.displayName || currentUser.email }}</span>
-              <router-link class="nav-link" to="/dashboard" active-class="active">
+              <router-link class="nav-link" :to="dashboardRoute" active-class="active">
                 <i class="fas fa-tachometer-alt me-1"></i>
                 Dashboard
               </router-link>

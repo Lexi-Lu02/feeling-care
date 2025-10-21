@@ -10,7 +10,6 @@ import {
   updateUserRole,
   cleanupUserData,
 } from '../services/authService'
-import { userManagementService } from '../services/userManagementService'
 import InteractiveTable from '../components/InteractiveTable.vue'
 
 // Initialize Firebase and Firestore
@@ -30,12 +29,6 @@ checkAdminAccess()
 
 const currentUser = ref(getCurrentUser())
 
-// Define functions first
-const openAdminManagement = async () => {
-  showAdminManagement.value = true
-  await loadAdminUsers()
-}
-
 // Admin Actions
 const adminActions = ref([
   {
@@ -44,15 +37,12 @@ const adminActions = ref([
     description: 'Add, edit, or remove user accounts',
     buttonText: 'Manage Users',
     handler: () => {
-      // User management feature clicked
+      // Scroll to User Management section
+      const userManagementSection = document.querySelector('.user-management')
+      if (userManagementSection) {
+        userManagementSection.scrollIntoView({ behavior: 'smooth' })
+      }
     },
-  },
-  {
-    icon: '👑',
-    title: 'Admin Management',
-    description: 'Assign or remove admin roles from users',
-    buttonText: 'Manage Admins',
-    handler: openAdminManagement,
   },
   {
     icon: '📝',
@@ -106,13 +96,6 @@ const users = ref([])
 const isLoadingUsers = ref(false)
 const selectedUser = ref(null)
 
-// Admin Management Data
-const showAdminManagement = ref(false)
-const adminUsers = ref([])
-const isLoadingAdmins = ref(false)
-const adminMessage = ref('')
-const adminMessageType = ref('')
-
 // Real-time listener unsubscribe functions
 let usersUnsubscribe = null
 let postsUnsubscribe = null
@@ -153,7 +136,7 @@ const settings = ref({
 const loadUsers = async () => {
   isLoadingUsers.value = true
   try {
-    const userData = await userManagementService.getUsers()
+    const userData = await getAllUsers()
     users.value = userData
   } catch (error) {
     console.error('Error loading users:', error)
@@ -214,20 +197,28 @@ const deletePost = async (post) => {
 
 // Edit user role functionality (prompts for new role)
 const editUserRole = async (user) => {
-  // Check if role can be modified
+  // Check if role can be modified - admin emails cannot be changed
   if (!user.canModifyRole) {
     alert('Admin roles cannot be changed for admin email addresses')
     return
   }
 
-  const newRole = prompt(`Enter new role for ${user.email || user.username}:`, user.role || 'user')
+  const newRole = prompt(
+    `Enter new role for ${user.email || user.displayName}:`,
+    user.role || 'user',
+  )
   if (newRole && newRole !== user.role) {
-    const result = await updateUserRole(user.id, newRole, user.email)
-    if (result.success) {
-      alert(result.message)
-      await loadUsers() // Refresh the users list
-    } else {
-      alert(result.message)
+    try {
+      const result = await updateUserRole(user.uid, newRole)
+      if (result.success) {
+        alert(result.message)
+        await loadUsers() // Refresh the users list
+      } else {
+        alert(`Error: ${result.message}`)
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error)
+      alert('Error updating user role. Please try again.')
     }
   }
 }
@@ -280,52 +271,6 @@ const exportPostsCSV = () => {
 
 const getRoleBadgeClass = (role) => {
   return role === 'admin' ? 'bg-danger' : 'bg-primary'
-}
-
-// Admin Management Functions
-const loadAdminUsers = async () => {
-  isLoadingAdmins.value = true
-  try {
-    const allUsers = await getAllUsers()
-    adminUsers.value = allUsers
-  } catch (error) {
-    console.error('Error loading admin users:', error)
-    showMessage('Failed to load users', 'error')
-  } finally {
-    isLoadingAdmins.value = false
-  }
-}
-
-const toggleAdminRole = async (user) => {
-  try {
-    // Check if role can be modified
-    if (!user.canModifyRole) {
-      showMessage('Admin roles cannot be changed for admin email addresses', 'error')
-      return
-    }
-
-    const newRole = user.role === 'admin' ? 'user' : 'admin'
-    const result = await updateUserRole(user.id, newRole, user.email)
-
-    if (result.success) {
-      showMessage(result.message, 'success')
-      await loadAdminUsers() // Refresh the list
-    } else {
-      showMessage(result.message, 'error')
-    }
-  } catch (error) {
-    console.error('Error toggling admin role:', error)
-    showMessage('Failed to update admin role', 'error')
-  }
-}
-
-const showMessage = (message, type) => {
-  adminMessage.value = message
-  adminMessageType.value = type
-  setTimeout(() => {
-    adminMessage.value = ''
-    adminMessageType.value = ''
-  }, 3000)
 }
 
 const editUser = (user) => {
@@ -392,7 +337,13 @@ const saveSecuritySettings = () => {
 onMounted(async () => {
   // Set up real-time listener for users collection
   usersUnsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
-    users.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    users.value = snapshot.docs.map((doc) => {
+      const userData = { id: doc.id, ...doc.data() }
+      // Add canModifyRole property - admin emails cannot be modified
+      const ADMIN_EMAILS = ['admin@feelingcare.com']
+      userData.canModifyRole = !ADMIN_EMAILS.includes(userData.email?.toLowerCase())
+      return userData
+    })
   })
 
   // Set up real-time listener for posts collection
@@ -469,7 +420,6 @@ onUnmounted(() => {
             <i class="fas fa-users me-2"></i>
             User Management
           </h2>
-          <p class="section-description">Manage user accounts, roles, and permissions</p>
           <div class="section-actions">
             <button
               @click="refreshUsers"
@@ -742,115 +692,5 @@ onUnmounted(() => {
         </div>
       </div>
     </section>
-
-    <!-- Admin Management Modal -->
-    <div v-if="showAdminManagement" class="modal-overlay" @click="showAdminManagement = false">
-      <div class="modal-dialog modal-lg" @click.stop>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-crown me-2"></i>
-              Admin Role Management
-            </h5>
-            <button type="button" class="btn-close" @click="showAdminManagement = false"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Message Display -->
-            <div
-              v-if="adminMessage"
-              :class="`alert alert-${adminMessageType === 'success' ? 'success' : 'danger'}`"
-            >
-              {{ adminMessage }}
-            </div>
-
-            <!-- Loading State -->
-            <div v-if="isLoadingAdmins" class="text-center py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-2">Loading users...</p>
-            </div>
-
-            <!-- Users List -->
-            <div v-else-if="adminUsers.length > 0" class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Current Role</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="user in adminUsers" :key="user.id">
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <div class="avatar-circle me-2">
-                          {{ (user.displayName || user.email || 'U').charAt(0).toUpperCase() }}
-                        </div>
-                        <div>
-                          <div class="fw-bold">{{ user.displayName || 'No Name' }}</div>
-                          <small class="text-muted">ID: {{ user.id }}</small>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{{ user.email }}</td>
-                    <td>
-                      <span :class="`badge ${getRoleBadgeClass(user.role)}`">
-                        {{ user.role || 'user' }}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        v-if="user.canModifyRole"
-                        @click="toggleAdminRole(user)"
-                        :class="`btn btn-sm ${user.role === 'admin' ? 'btn-warning' : 'btn-success'}`"
-                        :disabled="user.id === currentUser?.uid"
-                      >
-                        <i
-                          :class="`fas ${user.role === 'admin' ? 'fa-user-minus' : 'fa-user-plus'} me-1`"
-                        ></i>
-                        {{ user.role === 'admin' ? 'Remove Admin' : 'Make Admin' }}
-                      </button>
-                      <span v-else class="badge bg-secondary">
-                        <i class="fas fa-lock me-1"></i>
-                        Immutable
-                      </span>
-                      <small v-if="user.id === currentUser?.uid" class="text-muted d-block">
-                        (Cannot modify your own role)
-                      </small>
-                      <small v-else-if="!user.canModifyRole" class="text-muted d-block">
-                        (Admin email - role cannot be changed)
-                      </small>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- No Users State -->
-            <div v-else class="text-center py-4">
-              <i class="fas fa-users fa-3x text-muted mb-3"></i>
-              <p class="text-muted">No users found</p>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showAdminManagement = false">
-              Close
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="loadAdminUsers"
-              :disabled="isLoadingAdmins"
-            >
-              <i class="fas fa-sync-alt me-1" :class="{ 'fa-spin': isLoadingAdmins }"></i>
-              Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>

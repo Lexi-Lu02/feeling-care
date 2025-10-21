@@ -1,5 +1,5 @@
 <script setup>
-import { getAuth, signOut } from 'firebase/auth'
+import { getAuth, signOut, updateProfile } from 'firebase/auth'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore'
@@ -22,6 +22,7 @@ const userProfile = ref({
 
 const isEditingProfile = ref(false)
 const isLoadingProfile = ref(false)
+const profileUpdateMessage = ref('')
 
 async function handleLogout() {
   try {
@@ -63,20 +64,35 @@ async function loadUserProfile() {
   }
 }
 
-// Save profile updates to Firestore
+// Save profile updates to Firestore and Firebase Auth
 async function saveProfileUpdates(profileData) {
   const user = auth.currentUser
   if (!user) return
 
   try {
+    // Update Firebase Auth profile if displayName changed
+    if (profileData.displayName && profileData.displayName !== user.displayName) {
+      await updateProfile(user, {
+        displayName: profileData.displayName,
+      })
+    }
+
+    // Update Firestore document
     await updateDoc(doc(db, 'users', user.uid), {
       ...profileData,
       updatedAt: new Date().toISOString(),
     })
+
     console.log('Profile updated successfully')
+    profileUpdateMessage.value = 'Profile updated successfully!'
     isEditingProfile.value = false
     // Reload profile data to show updated information
     await loadUserProfile()
+
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      profileUpdateMessage.value = ''
+    }, 3000)
   } catch (error) {
     console.error('Error updating profile:', error)
   }
@@ -89,6 +105,17 @@ function toggleProfileEdit() {
 
 // Handle profile form submission
 async function handleProfileSubmit() {
+  // Validate display name
+  if (userProfile.value.displayName && userProfile.value.displayName.length < 2) {
+    alert('Display name must be at least 2 characters long')
+    return
+  }
+
+  if (userProfile.value.displayName && userProfile.value.displayName.length > 50) {
+    alert('Display name must be less than 50 characters')
+    return
+  }
+
   await saveProfileUpdates(userProfile.value)
 }
 
@@ -276,6 +303,16 @@ onMounted(() => {
             </div>
 
             <div v-else class="profile-content">
+              <!-- Success Message -->
+              <div
+                v-if="profileUpdateMessage"
+                class="alert alert-success alert-dismissible fade show"
+                role="alert"
+              >
+                {{ profileUpdateMessage }}
+                <button type="button" class="btn-close" @click="profileUpdateMessage = ''"></button>
+              </div>
+
               <!-- Profile Display Mode -->
               <div v-if="!isEditingProfile" class="profile-display">
                 <div class="profile-item">
@@ -296,7 +333,7 @@ onMounted(() => {
                 </div>
                 <div class="profile-item">
                   <label>Member since:</label>
-                  <span>{{ formatDate(new Date(userProfile.createdAt)) }}</span>
+                  <span>{{ formatDate(userProfile.createdAt) }}</span>
                 </div>
               </div>
 
@@ -779,11 +816,23 @@ export default {
     formatDate(date) {
       if (!date) return 'N/A'
       try {
+        let dateObj
+        // Handle Firestore Timestamp objects
+        if (date && typeof date.toDate === 'function') {
+          dateObj = date.toDate()
+        } else if (date && date.seconds) {
+          // Handle Firestore Timestamp with seconds property
+          dateObj = new Date(date.seconds * 1000)
+        } else {
+          dateObj = new Date(date)
+        }
+
+        if (isNaN(dateObj.getTime())) return 'Invalid Date'
         return new Intl.DateTimeFormat('en-US', {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
-        }).format(new Date(date))
+        }).format(dateObj)
       } catch (error) {
         console.error('Error formatting date:', error)
         return 'Invalid Date'
@@ -792,11 +841,23 @@ export default {
     formatTime(date) {
       if (!date) return 'N/A'
       try {
+        let dateObj
+        // Handle Firestore Timestamp objects
+        if (date && typeof date.toDate === 'function') {
+          dateObj = date.toDate()
+        } else if (date && date.seconds) {
+          // Handle Firestore Timestamp with seconds property
+          dateObj = new Date(date.seconds * 1000)
+        } else {
+          dateObj = new Date(date)
+        }
+
+        if (isNaN(dateObj.getTime())) return 'Invalid Time'
         return new Intl.DateTimeFormat('en-US', {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
-        }).format(new Date(date))
+        }).format(dateObj)
       } catch (error) {
         console.error('Error formatting time:', error)
         return 'Invalid Time'
