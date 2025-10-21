@@ -55,23 +55,32 @@
             <span v-else-if="col.type === 'time'">{{ formatTime(item?.[col.key]) }}</span>
             <span v-else-if="col.type === 'actions'">
               <!-- Post actions -->
-              <button
-                v-if="item.title"
-                @click.stop="$emit('delete-post', item)"
-                class="btn btn-sm btn-danger me-1"
-                title="Delete Post"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
+              <div v-if="item.title" class="action-buttons">
+                <button
+                  @click.stop="$emit('delete-post', item)"
+                  class="btn btn-sm btn-danger me-1"
+                  title="Delete Post"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
               <!-- User actions -->
-              <button
-                v-if="item.email"
-                @click.stop="$emit('edit-user-role', item)"
-                class="btn btn-sm btn-warning me-1"
-                title="Edit Role"
-              >
-                <i class="fas fa-edit"></i>
-              </button>
+              <div v-if="item.email" class="action-buttons">
+                <button
+                  @click.stop="$emit('edit-user-role', item)"
+                  class="btn btn-sm btn-primary me-1"
+                  title="Edit User"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button
+                  @click.stop="$emit('delete-user', item)"
+                  class="btn btn-sm btn-danger"
+                  title="Delete User"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
             </span>
             <span v-else>{{ item?.[col.key] || '' }}</span>
           </td>
@@ -93,7 +102,7 @@
         <i class="fas fa-chevron-left me-1"></i>Previous
       </button>
       <span class="pagination-info">
-        Page {{ currentPage }} of {{ totalPages }} ({{ filteredData.length }} total items)
+        Page {{ currentPage }} of {{ totalPages }} ({{ filteredData?.length || 0 }} total items)
       </span>
       <button
         @click="nextPage"
@@ -121,7 +130,7 @@ export default {
       required: true,
     },
   },
-  emits: ['row-click', 'delete-post', 'edit-user-role'],
+  emits: ['row-click', 'delete-post', 'edit-user-role', 'delete-user'],
   setup(props, { emit }) {
     // Error boundary to catch and handle errors
     onErrorCaptured((error, instance, info) => {
@@ -288,20 +297,34 @@ export default {
     // Date and time formatting methods
     const formatDate = (date) => {
       if (!date) return ''
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }).format(new Date(date))
+      try {
+        const dateObj = new Date(date)
+        if (isNaN(dateObj.getTime())) return 'Invalid Date'
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }).format(dateObj)
+      } catch (error) {
+        console.error('Error formatting date:', error)
+        return 'Invalid Date'
+      }
     }
 
     const formatTime = (date) => {
       if (!date) return ''
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      }).format(new Date(date))
+      try {
+        const dateObj = new Date(date)
+        if (isNaN(dateObj.getTime())) return 'Invalid Time'
+        return new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        }).format(dateObj)
+      } catch (error) {
+        console.error('Error formatting time:', error)
+        return 'Invalid Time'
+      }
     }
 
     return {
@@ -310,6 +333,7 @@ export default {
       sortDirection,
       globalSearchTerm,
       columnSearchTerms,
+      filteredData,
       paginatedData,
       totalPages,
       toggleSort,

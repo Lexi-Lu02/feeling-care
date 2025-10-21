@@ -777,18 +777,30 @@ export default {
       }
     },
     formatDate(date) {
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }).format(date)
+      if (!date) return 'N/A'
+      try {
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }).format(new Date(date))
+      } catch (error) {
+        console.error('Error formatting date:', error)
+        return 'Invalid Date'
+      }
     },
     formatTime(date) {
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      }).format(date)
+      if (!date) return 'N/A'
+      try {
+        return new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        }).format(new Date(date))
+      } catch (error) {
+        console.error('Error formatting time:', error)
+        return 'Invalid Time'
+      }
     },
     getResourceIcon(type) {
       const icons = {

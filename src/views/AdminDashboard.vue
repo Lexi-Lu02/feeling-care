@@ -30,6 +30,12 @@ checkAdminAccess()
 
 const currentUser = ref(getCurrentUser())
 
+// Define functions first
+const openAdminManagement = async () => {
+  showAdminManagement.value = true
+  await loadAdminUsers()
+}
+
 // Admin Actions
 const adminActions = ref([
   {
@@ -116,30 +122,22 @@ const posts = ref([])
 const isLoadingPosts = ref(false)
 const selectedPost = ref(null)
 
-// User table columns configuration
+// User table columns configuration - aligned with database structure
 const userColumns = ref([
-  { key: 'id', label: 'ID', sortable: true, searchable: false },
-  { key: 'username', label: 'Username', sortable: true, searchable: true },
   { key: 'email', label: 'Email', sortable: true, searchable: true },
+  { key: 'displayName', label: 'Display Name', sortable: true, searchable: true },
   { key: 'role', label: 'Role', sortable: true, searchable: true },
-  { key: 'status', label: 'Status', sortable: true, searchable: true },
-  { key: 'emailVerified', label: 'Verified', sortable: true, searchable: false },
-  { key: 'provider', label: 'Provider', sortable: true, searchable: true },
+  { key: 'postCount', label: 'Posts', sortable: true, searchable: false },
+  { key: 'disabled', label: 'Status', sortable: true, searchable: true },
   { key: 'createdAt', label: 'Created', sortable: true, searchable: true, type: 'date' },
-  { key: 'lastSignIn', label: 'Last Sign In', sortable: true, searchable: true, type: 'date' },
   { key: 'actions', label: 'Actions', sortable: false, searchable: false, type: 'actions' },
 ])
 
-// Posts table columns configuration
+// Posts table columns configuration - simplified and relevant
 const postColumns = ref([
-  { key: 'id', label: 'ID', sortable: true, searchable: false },
   { key: 'title', label: 'Title', sortable: true, searchable: true },
-  { key: 'content', label: 'Content', sortable: false, searchable: true },
-  { key: 'author', label: 'Author', sortable: true, searchable: true },
-  { key: 'category', label: 'Category', sortable: true, searchable: true },
-  { key: 'status', label: 'Status', sortable: true, searchable: true },
+  { key: 'authorId', label: 'Author ID', sortable: true, searchable: true },
   { key: 'createdAt', label: 'Created', sortable: true, searchable: true, type: 'date' },
-  { key: 'updatedAt', label: 'Updated', sortable: true, searchable: true, type: 'date' },
   { key: 'actions', label: 'Actions', sortable: false, searchable: false, type: 'actions' },
 ])
 
@@ -330,11 +328,6 @@ const showMessage = (message, type) => {
   }, 3000)
 }
 
-const openAdminManagement = async () => {
-  showAdminManagement.value = true
-  await loadAdminUsers()
-}
-
 const editUser = (user) => {
   // Edit user functionality - could open a modal or navigate to edit page
   console.log('Edit user:', user)
@@ -420,14 +413,26 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="admin-dashboard">
+  <div class="dashboard-container">
     <!-- Admin Header -->
-    <section class="admin-header">
+    <section class="dashboard-header">
       <div class="container">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h1 class="admin-title">Admin Dashboard</h1>
-            <p class="admin-subtitle">Welcome back, {{ currentUser?.username }}</p>
+            <h1 class="dashboard-title">Admin Dashboard</h1>
+            <p class="dashboard-subtitle">
+              Welcome back, {{ currentUser?.displayName || currentUser?.email }}
+            </p>
+          </div>
+          <div class="dashboard-stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ users?.length || 0 }}</span>
+              <span class="stat-label">Total Users</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ posts?.length || 0 }}</span>
+              <span class="stat-label">Total Posts</span>
+            </div>
           </div>
         </div>
       </div>
@@ -436,7 +441,7 @@ onUnmounted(() => {
     <!-- Admin Actions -->
     <section class="admin-actions-section">
       <div class="container">
-        <h2>Administrative Actions</h2>
+        <h2 class="section-title">Administrative Actions</h2>
         <div class="row">
           <div
             class="col-12 col-md-6 col-lg-4"
@@ -445,9 +450,9 @@ onUnmounted(() => {
           >
             <div class="action-card">
               <div class="action-icon">{{ action.icon }}</div>
-              <h3>{{ action.title }}</h3>
-              <p>{{ action.description }}</p>
-              <button @click="action.handler" class="btn btn-primary">
+              <h3 class="action-title">{{ action.title }}</h3>
+              <p class="action-description">{{ action.description }}</p>
+              <button @click="action.handler" class="btn btn-primary action-btn">
                 {{ action.buttonText }}
               </button>
             </div>
@@ -500,6 +505,7 @@ onUnmounted(() => {
             :columns="userColumns"
             @row-click="openUserModal"
             @edit-user-role="editUserRole"
+            @delete-user="deleteUser"
           />
         </div>
 
