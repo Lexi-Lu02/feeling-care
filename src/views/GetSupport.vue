@@ -62,7 +62,9 @@
               </div>
               <h3>Local Associations</h3>
               <p>Connect with mental health organizations and support groups in your local area.</p>
-              <button class="btn btn-primary">Find Local Help</button>
+              <router-link to="/local-associations" class="btn btn-primary"
+                >Find Local Help</router-link
+              >
             </div>
           </div>
           <div class="col-12 col-lg-6">

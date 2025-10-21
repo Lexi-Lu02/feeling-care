@@ -1,0 +1,576 @@
+/* Local Associations Page Styles */
+
+/* Page Layout */
+.local-associations-page {
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.hero-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, var(--light-peach) 0%, var(--pale-mint) 100%);
+}
+
+.hero-association-icon {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(20, 29, 22, 0.3));
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--bs-primary);
+  margin-bottom: 20px;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  color: var(--bs-primary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+/* Search Section */
+.search-section {
+  padding: 20px 0;
+  background-color: var(--pale-pink);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  color: #6c757d;
+  z-index: 2;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.filter-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+/* Map and Associations Section */
+.map-associations-section {
+  padding: 5px 0 40px 0;
+  background-color: var(--pale-mint);
+}
+
+.map-container {
+  position: relative;
+  height: 600px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Map Controls Section */
+.map-controls-section {
+  padding: 10px 0;
+  background-color: var(--pale-mint);
+}
+
+.map-controls-panel {
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.map-controls-panel .btn {
+  min-width: 160px;
+  padding: 10px 16px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .map-controls-panel {
+    gap: 10px;
+  }
+
+  .map-controls-panel .btn {
+    min-width: 140px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Associations Sidebar */
+.associations-sidebar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 600px;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--light-sage);
+}
+
+.sidebar-title {
+  color: var(--bs-primary);
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+}
+
+.results-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.count-badge {
+  background: var(--bs-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.count-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.associations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.migration-section {
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.migration-message p {
+  color: #6c757d;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.association-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.association-card:hover {
+  border-color: var(--bs-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.association-card.active {
+  border-color: var(--bs-primary);
+  background-color: var(--light-peach);
+}
+
+.association-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.association-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--bs-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.focus-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-youth {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+.badge-depression {
+  background-color: #fce4ec;
+  color: #c2185b;
+}
+.badge-crisis {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+.badge-family {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+.badge-lgbtq {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+.badge-indigenous {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+.badge-workplace {
+  background-color: #e0f2f1;
+  color: #00796b;
+}
+.badge-addiction {
+  background-color: #f1f8e9;
+  color: #689f38;
+}
+.badge-trauma {
+  background-color: #fce4ec;
+  color: #ad1457;
+}
+.badge-general {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+.association-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.association-details {
+  margin-bottom: 15px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.detail-item i {
+  width: 16px;
+  color: var(--bs-primary);
+}
+
+.detail-item .btn {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  margin: 0;
+}
+
+.directions-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  z-index: 10;
+}
+
+.association-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--bs-primary);
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close:hover {
+  color: var(--bs-primary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body h5 {
+  color: var(--bs-primary);
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.services-list {
+  list-style: none;
+  padding: 0;
+}
+
+.services-list li {
+  padding: 5px 0;
+  color: #6c757d;
+}
+
+.services-list i {
+  color: var(--bs-primary);
+}
+
+.contact-info {
+  margin-bottom: 20px;
+}
+
+.contact-item {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.contact-item i {
+  color: var(--bs-primary);
+  margin-top: 2px;
+}
+
+.contact-item div {
+  margin-left: 10px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-btn {
+  font-size: 0.875rem !important;
+  padding: 8px 16px !important;
+  font-weight: 500 !important;
+}
+
+/* Mapbox Popup Styles */
+.mapbox-popup {
+  min-width: 250px;
+  font-family: inherit;
+}
+
+.mapbox-popup .popup-title {
+  margin: 0 0 10px 0;
+  color: var(--bs-primary);
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.mapbox-popup .popup-description {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.mapbox-popup .popup-details {
+  margin: 10px 0;
+}
+
+.mapbox-popup .popup-details p {
+  margin: 3px 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.mapbox-popup .popup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mapbox-popup .btn {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+/* Mapbox Controls */
+.mapboxgl-ctrl-group {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-ctrl-geocoder {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+}
+
+.mapboxgl-popup-content {
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mapboxgl-popup-close-button {
+  font-size: 18px;
+  color: #6c757d;
+}
+
+.mapboxgl-popup-close-button:hover {
+  color: var(--bs-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-description {
+    font-size: 1.1rem;
+  }
+
+  .map-container {
+    height: 400px;
+  }
+
+  .associations-sidebar {
+    height: auto;
+    max-height: 400px;
+  }
+
+  .sidebar-title {
+    font-size: 1.1rem;
+  }
+
+  .association-card {
+    padding: 15px;
+  }
+
+  .association-name {
+    font-size: 1rem;
+  }
+
+  .association-description {
+    font-size: 0.85rem;
+  }
+
+  .detail-item {
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 10px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .sidebar-title {
+    font-size: 1rem;
+  }
+
+  .association-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .focus-badge {
+    align-self: flex-start;
+  }
+}

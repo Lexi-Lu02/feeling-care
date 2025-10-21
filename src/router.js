@@ -9,6 +9,7 @@ import AdminDashboard from './views/AdminDashboard.vue'
 import BlogPage from './views/BlogPage.vue'
 import BlogPostDetail from './views/BlogPostDetail.vue'
 import UserDashboard from './views/UserDashboard.vue'
+import LocalAssociations from './views/LocalAssociations.vue'
 import { requireAdmin, requireAuth } from './services/authService'
 import { securityGuard } from './middleware/security'
 
@@ -30,6 +31,10 @@ const routes = [
     path: '/admin',
     component: AdminDashboard,
     beforeEnter: requireAdmin,
+  },
+  {
+    path: '/local-associations',
+    component: LocalAssociations,
   },
 ]
 

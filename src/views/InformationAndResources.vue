@@ -85,10 +85,6 @@
           <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
           <h4>No blog posts available</h4>
           <p class="text-muted">Check back later for new content!</p>
-          <button @click="runMigration" class="btn btn-primary mt-3" :disabled="isRunningMigration">
-            <i class="fas fa-sync-alt me-2" :class="{ 'fa-spin': isRunningMigration }"></i>
-            {{ isRunningMigration ? 'Loading Posts...' : 'Load Sample Posts' }}
-          </button>
         </div>
       </div>
     </section>
@@ -157,12 +153,10 @@ import {
   cleanupPostsListener,
   handleImageError,
 } from '../services/firestoreBlogService'
-import { migratePostsToFirestore, checkMigrationStatus } from '../services/postMigration'
 
 const blogs = ref([])
 const isLoading = ref(true)
 const error = ref(null)
-const isRunningMigration = ref(false)
 
 // Load published posts from Firestore
 const loadBlogs = async () => {
@@ -242,39 +236,6 @@ const videos = ref([
       'Guidance on developing and maintaining positive relationships with family and friends.',
   },
 ])
-
-// Run migration to load sample posts
-const runMigration = async () => {
-  try {
-    isRunningMigration.value = true
-    console.log('🚀 Starting migration...')
-
-    const status = await checkMigrationStatus()
-    console.log('Migration status:', status)
-
-    if (status.needsMigration) {
-      console.log('Running posts migration...')
-      const result = await migratePostsToFirestore()
-      if (result.success) {
-        console.log('✅ Migration completed successfully!')
-        // Reload blogs after migration
-        await loadBlogs()
-      } else {
-        console.error('❌ Migration failed:', result.message)
-        error.value = 'Migration failed: ' + result.message
-      }
-    } else {
-      console.log(`✅ Posts already migrated. Found ${status.postCount} posts.`)
-      // Reload blogs anyway
-      await loadBlogs()
-    }
-  } catch (err) {
-    console.error('❌ Error during migration:', err)
-    error.value = 'Error loading posts: ' + err.message
-  } finally {
-    isRunningMigration.value = false
-  }
-}
 
 // Initialize posts listener and load data
 onMounted(async () => {

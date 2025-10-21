@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import './assets/custom.css'
 import './assets/homepage.css'
 import './assets/getinvolved.css'
@@ -38,11 +40,6 @@ app.config.errorHandler = (err, instance, info) => {
 
 // Initialize security measures
 initializeSecurity()
-
-// Load migration utilities for development
-if (import.meta.env.DEV) {
-  import('./utils/runMigration.js')
-}
 
 app.use(router)
 app.mount('#app')

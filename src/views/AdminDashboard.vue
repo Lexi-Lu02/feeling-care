@@ -19,7 +19,6 @@ import {
   allPosts,
 } from '../services/firestoreBlogService'
 import { imageUploadService } from '../services/imageUploadService'
-import { migratePostsToFirestore, checkMigrationStatus } from '../services/postMigration'
 import InteractiveTable from '../components/InteractiveTable.vue'
 
 // Initialize Firebase and Firestore
@@ -312,27 +311,6 @@ const removeTag = (tagToRemove) => {
   currentPost.value.tags = currentPost.value.tags.filter((tag) => tag !== tagToRemove)
 }
 
-// Check and run migration if needed
-const checkAndRunMigration = async () => {
-  try {
-    const status = await checkMigrationStatus()
-    if (status.needsMigration) {
-      console.log('Running posts migration...')
-      const result = await migratePostsToFirestore()
-      if (result.success) {
-        console.log('Migration completed successfully')
-        // Real-time listener will automatically update the posts list
-      } else {
-        console.error('Migration failed:', result.message)
-      }
-    } else {
-      console.log(`Posts already migrated. Found ${status.postCount} posts.`)
-    }
-  } catch (error) {
-    console.error('Error checking migration:', error)
-  }
-}
-
 // Edit user role functionality (prompts for new role)
 const editUserRole = async (user) => {
   // Check if role can be modified - admin emails cannot be changed
@@ -474,9 +452,6 @@ onMounted(async () => {
       return userData
     })
   })
-
-  // Check and run migration if needed
-  await checkAndRunMigration()
 
   // Initialize posts listener
   initializePostsListener()

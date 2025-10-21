@@ -11,14 +11,8 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore'
-import { getFirestore } from 'firebase/firestore'
-import { firebaseConfig } from './firebaseService'
-import { initializeApp } from 'firebase/app'
+import { db } from './firebaseInit'
 import { ref } from 'vue'
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
 
 // Reactive posts data
 export const allPosts = ref([])

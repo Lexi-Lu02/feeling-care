@@ -1,10 +1,5 @@
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { initializeApp, getApps, getApp } from 'firebase/app'
-import { firebaseConfig } from './firebaseService'
-
-// Use existing Firebase app or initialize new one
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
-const storage = getStorage(app)
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import { storage } from './firebaseInit'
 
 // Image upload service
 export const imageUploadService = {

@@ -1,26 +1,5 @@
-import { initializeApp, getApps, getApp } from 'firebase/app'
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth'
-
-// Firebase web configuration
-const firebaseConfig = {
-  apiKey: 'AIzaSyDGrA5KWGjdQwaA8CdCYzbmDYmwMjYSYO0',
-  authDomain: 'assignment3-lanxin-lu-33912645.firebaseapp.com',
-  projectId: 'assignment3-lanxin-lu-33912645',
-  storageBucket: 'assignment3-lanxin-lu-33912645.appspot.com',
-  messagingSenderId: '561423951295',
-  appId: '1:561423951295:web:732d1448c23c7eff3b6d0a',
-  measurementId: 'G-MD1NWMKJH9',
-}
-
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
-const auth = getAuth(app)
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log('Firebase Auth persistence set to local')
-  })
-  .catch((error) => {
-    console.error(' Error setting Firebase persistence:', error)
-  })
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth, firebaseConfig } from './firebaseInit'
 
 // ========== Optional class wrapper for extra helpers ==========
 class FirebaseAuthService {
