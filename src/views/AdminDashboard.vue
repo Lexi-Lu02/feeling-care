@@ -659,7 +659,7 @@ onUnmounted(() => {
               <span class="stat-label">Total Users</span>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ posts?.length || 0 }}</span>
+              <span class="stat-number">{{ (allPosts && allPosts.length) || 0 }}</span>
               <span class="stat-label">Total Posts</span>
             </div>
           </div>

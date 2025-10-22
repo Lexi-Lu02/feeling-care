@@ -1,3 +1,19 @@
+function buildCorsHeaders(request) {
+  const origin = request.headers.get('Origin') || '*'
+  const allowedOrigins = ['http://localhost:5173', 'https://feeling-care.pages.dev']
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : '*'
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+  }
+}
+
+export async function onRequestOptions(context) {
+  return new Response(null, { status: 204, headers: buildCorsHeaders(context.request) })
+}
+
 export async function onRequestPost(context) {
   try {
     const SENDGRID_API_KEY = context.env.FeelingCareKey
@@ -45,14 +61,21 @@ export async function onRequestPost(context) {
     if (!response.ok) {
       const errorBody = await response.text()
       console.error('SendGrid Error:', errorBody)
-      return new Response(JSON.stringify({ error: errorBody }), { status: 500 })
+      return new Response(JSON.stringify({ error: errorBody }), {
+        status: 500,
+        headers: buildCorsHeaders(context.request),
+      })
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Email sent successfully!' }), {
       status: 200,
+      headers: buildCorsHeaders(context.request),
     })
   } catch (err) {
     console.error('Backend Error:', err)
-    return new Response(JSON.stringify({ error: 'Server error: ' + err.message }), { status: 500 })
+    return new Response(JSON.stringify({ error: 'Server error: ' + err.message }), {
+      status: 500,
+      headers: buildCorsHeaders(context.request),
+    })
   }
 }

@@ -23,8 +23,8 @@ export const sendEmailWithAttachment = async (
   try {
     console.log('📧 Attempting to send email:', { to, from, subject })
 
-    // Use your deployed Cloudflare domain
-    const response = await fetch('https://feeling-care.pages.dev/send-email', {
+    // Use relative path; in prod it's same-origin; in dev Vite proxy forwards to Cloudflare Pages
+    const response = await fetch('/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
