@@ -588,6 +588,10 @@ const sendBulkEmail = async () => {
     }
 
     bulkEmailStatus.value = `Bulk email completed! Sent: ${successCount}, Failed: ${errorCount}`
+    // Auto-hide the status toast after a short delay
+    setTimeout(() => {
+      bulkEmailStatus.value = ''
+    }, 3000)
 
     if (successCount > 0) {
       alert(
@@ -600,6 +604,10 @@ const sendBulkEmail = async () => {
     console.error('Bulk email error:', error)
     bulkEmailStatus.value = 'Error sending bulk emails'
     alert('An error occurred while sending bulk emails. Please try again.')
+    // Auto-hide the status toast on error as well
+    setTimeout(() => {
+      bulkEmailStatus.value = ''
+    }, 3000)
   } finally {
     isSendingBulkEmail.value = false
   }

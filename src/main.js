@@ -11,6 +11,7 @@ import './assets/getinvolved.css'
 import './assets/aboutus.css'
 import { initializeSecurity } from './middleware/security'
 import { initializeApp } from 'firebase/app'
+import { initializeOfflineSync } from './services/syncService'
 
 // Firebase configuration
 const firebaseConfig = {
@@ -44,3 +45,6 @@ initializeSecurity()
 
 app.use(router)
 app.mount('#app')
+
+// Initialize offline sync after app mounts
+initializeOfflineSync()

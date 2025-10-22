@@ -50,6 +50,20 @@ export const sendEmailWithAttachment = async (
     }
 
     console.log('✅ Email sent successfully!')
+    // Record to offline/online stores if helpers available (lazy import to avoid circular deps)
+    try {
+      const { addLocalEmailEvent, enqueueSync } = await import('./offlineService')
+      const { saveEmailEventToCloud } = await import('./userDataService')
+      const event = { to, subject, status: 'sent', timestamp: Date.now() }
+      addLocalEmailEvent(event)
+      try {
+        await saveEmailEventToCloud(event)
+      } catch {
+        enqueueSync({ type: 'email', payload: event })
+      }
+    } catch {
+      // no-op: offline helpers not available
+    }
     return { success: true, message: 'Email sent successfully!' }
   } catch (error) {
     console.error('❌ Error sending email:', error)

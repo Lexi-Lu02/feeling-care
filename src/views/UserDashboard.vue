@@ -3,7 +3,7 @@ import { getAuth, signOut, updateProfile } from 'firebase/auth'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import { getFirestore, doc, updateDoc, getDoc } from 'firebase/firestore'
-import InteractiveTable from '../components/InteractiveTable.vue'
+// Removed InteractiveTable usage for Email History
 
 const auth = getAuth()
 const db = getFirestore()
@@ -158,18 +158,23 @@ onMounted(() => {
       <div class="row">
         <!-- Left Column -->
         <div class="col-lg-8">
-          <!-- Mood Tracker Section -->
+          <!-- Mood & Journal (Unified, offline-enabled) -->
           <div class="dashboard-section mb-4">
             <div class="section-header">
               <h3 class="section-title">
                 <i class="fas fa-heart me-2"></i>
-                Daily Mood Tracker
+                Mood & Journal
               </h3>
-              <button class="btn btn-sm btn-outline-primary">View History</button>
+              <button class="btn btn-sm btn-outline-primary" @click="openJournalHistory">
+                View History
+              </button>
             </div>
-            <div class="mood-tracker">
-              <div class="today-mood">
-                <h5>Today's Mood</h5>
+            <div class="mood-journal-container">
+              <div class="mood-section">
+                <h5 class="mb-3">
+                  <i class="fas fa-smile me-2"></i>
+                  How are you feeling today?
+                </h5>
                 <div class="mood-selector">
                   <div
                     class="mood-option"
@@ -182,88 +187,219 @@ onMounted(() => {
                     <span>{{ mood.label }}</span>
                   </div>
                 </div>
-                <div class="mood-notes mt-3">
-                  <textarea
-                    class="form-control"
-                    placeholder="How are you feeling today? (optional)"
-                    v-model="moodNotes"
-                    rows="3"
-                  ></textarea>
-                  <button class="btn btn-primary mt-2" @click="saveMood">Save Mood</button>
-                </div>
               </div>
-              <div class="mood-chart">
-                <h5>This Week's Mood</h5>
-                <div class="chart-placeholder">
-                  <i class="fas fa-chart-line fa-3x text-muted"></i>
-                  <p>Mood trend chart will be displayed here</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Daily Journey Section -->
-          <div class="dashboard-section mb-4">
-            <div class="section-header">
-              <h3 class="section-title">
-                <i class="fas fa-route me-2"></i>
-                Daily Journey
-              </h3>
-              <button class="btn btn-sm btn-outline-primary">View All Entries</button>
-            </div>
-            <div class="journey-entries">
-              <div class="entry-item" v-for="entry in recentEntries" :key="entry.id">
-                <div class="entry-date">{{ formatDate(entry.date) }}</div>
-                <div class="entry-content">
-                  <h6>{{ entry.title }}</h6>
-                  <p>{{ entry.content }}</p>
-                  <div class="entry-tags">
-                    <span class="tag" v-for="tag in entry.tags" :key="tag">{{ tag }}</span>
+              <div class="journal-section">
+                <h5 class="mb-3">
+                  <i class="fas fa-pen me-2"></i>
+                  Journal Entry
+                </h5>
+                <div class="journal-input">
+                  <textarea
+                    class="form-control journal-textarea"
+                    placeholder="Share your thoughts, experiences, or reflections... (optional)"
+                    v-model="journalContent"
+                    rows="6"
+                    maxlength="500"
+                  ></textarea>
+                  <div class="journal-actions mt-3">
+                    <button
+                      class="btn btn-primary"
+                      @click="saveJournalDraft"
+                      :disabled="!selectedMood && !journalContent.trim()"
+                    >
+                      <i class="fas fa-save me-1"></i>
+                      Save Draft
+                    </button>
+                    <button class="btn btn-outline-secondary" @click="clearJournal">
+                      <i class="fas fa-eraser me-1"></i>
+                      Clear
+                    </button>
+                    <small class="text-muted ms-3">
+                      {{ journalContent.length }}/500 characters
+                    </small>
                   </div>
                 </div>
               </div>
-              <div class="text-center mt-3">
-                <button class="btn btn-outline-secondary">
-                  <i class="fas fa-plus me-2"></i>
-                  Add New Entry
+            </div>
+          </div>
+
+          <!-- Journal History Section -->
+          <div class="dashboard-section mb-4">
+            <div class="section-header">
+              <h3 class="section-title">
+                <i class="fas fa-history me-2"></i>
+                Journal History
+              </h3>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" @click="loadJournalHistory">
+                  <i class="fas fa-sync me-1"></i>
+                  Refresh
                 </button>
+                <button class="btn btn-sm btn-outline-secondary" @click="toggleHistoryView">
+                  <i class="fas fa-th-large me-1"></i>
+                  {{ historyViewMode === 'grid' ? 'List View' : 'Grid View' }}
+                </button>
+              </div>
+            </div>
+            <div class="journal-history">
+              <div v-if="isLoadingHistory" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading journal history...</p>
+              </div>
+              <div v-else-if="journalHistory.length === 0" class="no-entries">
+                <div class="text-center py-5">
+                  <i class="fas fa-journal-whills fa-3x text-muted mb-3"></i>
+                  <h5>No journal entries yet</h5>
+                  <p class="text-muted">Start writing your first journal entry above!</p>
+                </div>
+              </div>
+              <div v-else :class="historyViewMode === 'grid' ? 'journal-grid' : 'journal-list'">
+                <div
+                  v-for="entry in displayedJournalHistory"
+                  :key="entry.id"
+                  class="journal-entry"
+                  :class="[
+                    historyViewMode === 'grid' ? 'journal-card' : 'journal-item',
+                    { editing: editingEntry === entry.id },
+                  ]"
+                >
+                  <!-- View Mode -->
+                  <div
+                    v-if="editingEntry !== entry.id"
+                    class="entry-view"
+                    @click="toggleExpanded(entry)"
+                  >
+                    <div class="entry-header">
+                      <div class="entry-date">{{ formatDate(entry.timestamp || entry.date) }}</div>
+                      <div class="entry-actions">
+                        <div v-if="entry.mood" class="entry-mood">
+                          <i :class="getMoodIcon(entry.mood)" :title="getMoodLabel(entry.mood)"></i>
+                          <span class="mood-label">{{ getMoodLabel(entry.mood) }}</span>
+                        </div>
+                        <button
+                          class="btn btn-sm btn-outline-primary"
+                          @click.stop="startEdit(entry)"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="entry-content">
+                      <p v-if="entry.content" class="entry-text">
+                        <span v-if="expandedEntry === entry.id">{{ entry.content }}</span>
+                        <span v-else>{{ getPreviewText(entry.content) }}</span>
+                      </p>
+                      <p v-else class="entry-text text-muted italic">No content</p>
+                      <div
+                        v-if="
+                          entry.content && entry.content.length > 150 && expandedEntry !== entry.id
+                        "
+                        class="expand-hint"
+                      >
+                        <i class="fas fa-chevron-down"></i> Click to read more
+                      </div>
+                      <div v-if="expandedEntry === entry.id" class="collapse-hint">
+                        <i class="fas fa-chevron-up"></i> Click to collapse
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Edit Mode -->
+                  <div v-else class="entry-edit">
+                    <div class="edit-header">
+                      <h6>Edit Entry - {{ formatDate(entry.timestamp || entry.date) }}</h6>
+                    </div>
+                    <div class="edit-mood mb-3">
+                      <label class="form-label">Mood:</label>
+                      <div class="mood-selector">
+                        <div
+                          class="mood-option"
+                          v-for="mood in moods"
+                          :key="mood.id"
+                          :class="{ active: editMood === mood.id }"
+                          @click="editMood = mood.id"
+                        >
+                          <i :class="mood.icon"></i>
+                          <span>{{ mood.label }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="edit-content mb-3">
+                      <label class="form-label">Content:</label>
+                      <textarea
+                        class="form-control"
+                        v-model="editContent"
+                        rows="4"
+                        maxlength="500"
+                      ></textarea>
+                    </div>
+                    <div class="edit-actions">
+                      <button class="btn btn-primary btn-sm" @click="saveEdit(entry)">
+                        <i class="fas fa-save me-1"></i>
+                        Save
+                      </button>
+                      <button class="btn btn-outline-secondary btn-sm" @click="cancelEdit">
+                        <i class="fas fa-times me-1"></i>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Load More Button -->
+                <div v-if="journalHistory.length > displayedEntries" class="text-center mt-4">
+                  <button class="btn btn-outline-primary" @click="loadMoreEntries">
+                    <i class="fas fa-plus me-1"></i>
+                    Load More ({{ journalHistory.length - displayedEntries }} remaining)
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Interactive Tables Section -->
+          <!-- Email History Section -->
           <div class="dashboard-section">
             <div class="section-header">
               <h3 class="section-title">
-                <i class="fas fa-table me-2"></i>
-                My Activity History
+                <i class="fas fa-envelope me-2"></i>
+                Email History
               </h3>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" @click="loadEmailHistory">
+                  <i class="fas fa-sync me-1"></i>
+                  Refresh
+                </button>
+              </div>
             </div>
-            <InteractiveTable
-              v-if="userActivities && userActivities.length > 0"
-              :data="userActivities"
-              :columns="activityColumns"
-            />
-            <div v-else class="no-data-message">
-              <p>No activity data available.</p>
-            </div>
-          </div>
-
-          <!-- Saved Resources Table -->
-          <div class="dashboard-section">
-            <div class="section-header">
-              <h3 class="section-title">
-                <i class="fas fa-bookmark me-2"></i>
-                Saved Resources
-              </h3>
-            </div>
-            <InteractiveTable
-              v-if="savedResourcesList && savedResourcesList.length > 0"
-              :data="savedResourcesList"
-              :columns="resourceColumns"
-            />
-            <div v-else class="no-data-message">
-              <p>No saved resources available.</p>
+            <div class="email-history">
+              <div v-if="isLoadingEmails" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+              <div v-else-if="emailHistory.length === 0" class="no-data-message">
+                <p>No email activity yet.</p>
+              </div>
+              <div v-else class="email-list">
+                <div
+                  v-for="(e, idx) in emailHistory"
+                  :key="idx"
+                  class="email-item d-flex justify-content-between align-items-center p-2 border rounded mb-2"
+                >
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-paper-plane text-primary"></i>
+                    <strong>{{ e.subject || 'No subject' }}</strong>
+                    <span class="text-muted">→ {{ e.to }}</span>
+                  </div>
+                  <small class="text-muted"
+                    >{{ formatDate(e.timestamp || e.clientTs) }}
+                    {{ formatTime(e.timestamp || e.clientTs) }}</small
+                  >
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -479,15 +615,22 @@ onMounted(() => {
 <script>
 export default {
   name: 'UserDashboard',
-  components: {
-    InteractiveTable,
-  },
+  components: {},
   data() {
     return {
       streakDays: 7,
       savedResources: 12,
       selectedMood: null,
-      moodNotes: '',
+      journalContent: '',
+      isOnline: navigator.onLine,
+      journalHistory: [],
+      isLoadingHistory: false,
+      historyViewMode: 'list', // 'grid' or 'list'
+      displayedEntries: 6, // Show only 6 entries initially
+      editingEntry: null, // Currently editing entry
+      editMood: null,
+      editContent: '',
+      expandedEntry: null, // Currently expanded entry for full content view
       moods: [
         { id: 1, icon: 'fas fa-smile', label: 'Great' },
         { id: 2, icon: 'fas fa-grin', label: 'Good' },
@@ -628,124 +771,10 @@ export default {
         { key: 'description', label: 'Description', sortable: false, searchable: true },
         { key: 'duration', label: 'Duration', sortable: true, searchable: false },
       ],
-      savedResourcesList: [
-        {
-          id: 1,
-          type: 'Article',
-          title: '10 Tips for Better Sleep',
-          description: 'Evidence-based strategies to improve your sleep quality',
-          savedDate: new Date(Date.now() - 2 * 86400000),
-          category: 'Sleep',
-          author: 'Dr. Sarah Johnson',
-        },
-        {
-          id: 2,
-          type: 'Video',
-          title: 'Mindfulness Meditation',
-          description: '15-minute guided meditation for beginners',
-          savedDate: new Date(Date.now() - 86400000),
-          category: 'Meditation',
-          author: 'Mindful Moments',
-        },
-        {
-          id: 3,
-          type: 'Podcast',
-          title: 'Managing Anxiety',
-          description: 'Expert interview on anxiety management techniques',
-          savedDate: new Date(),
-          category: 'Anxiety',
-          author: 'Mental Health Podcast',
-        },
-        {
-          id: 4,
-          type: 'Article',
-          title: 'Building Healthy Habits',
-          description: 'Step-by-step guide to creating lasting positive changes',
-          savedDate: new Date(Date.now() - 3 * 86400000),
-          category: 'Habits',
-          author: 'Dr. Michael Chen',
-        },
-        {
-          id: 5,
-          type: 'Video',
-          title: 'Yoga for Stress Relief',
-          description: 'Gentle yoga routine to reduce stress and tension',
-          savedDate: new Date(Date.now() - 4 * 86400000),
-          category: 'Exercise',
-          author: 'Yoga with Emma',
-        },
-        {
-          id: 6,
-          type: 'Article',
-          title: 'Understanding Depression',
-          description: 'Comprehensive guide to recognizing and managing depression',
-          savedDate: new Date(Date.now() - 5 * 86400000),
-          category: 'Depression',
-          author: 'Dr. Lisa Rodriguez',
-        },
-        {
-          id: 7,
-          type: 'Podcast',
-          title: 'Sleep Science',
-          description: 'Latest research on sleep and its impact on mental health',
-          savedDate: new Date(Date.now() - 6 * 86400000),
-          category: 'Sleep',
-          author: 'Science of Sleep',
-        },
-        {
-          id: 8,
-          type: 'Video',
-          title: 'Breathing Techniques',
-          description: 'Simple breathing exercises for anxiety and stress',
-          savedDate: new Date(Date.now() - 7 * 86400000),
-          category: 'Breathing',
-          author: 'Calm Breathing',
-        },
-        {
-          id: 9,
-          type: 'Article',
-          title: 'Nutrition and Mental Health',
-          description: 'How diet affects your mood and cognitive function',
-          savedDate: new Date(Date.now() - 8 * 86400000),
-          category: 'Nutrition',
-          author: 'Dr. Amanda Foster',
-        },
-        {
-          id: 10,
-          type: 'Podcast',
-          title: 'Work-Life Balance',
-          description: 'Strategies for maintaining healthy boundaries',
-          savedDate: new Date(Date.now() - 9 * 86400000),
-          category: 'Work-Life',
-          author: 'Balance Matters',
-        },
-        {
-          id: 11,
-          type: 'Video',
-          title: 'Progressive Muscle Relaxation',
-          description: 'Guided technique for deep relaxation',
-          savedDate: new Date(Date.now() - 10 * 86400000),
-          category: 'Relaxation',
-          author: 'Relaxation Studio',
-        },
-        {
-          id: 12,
-          type: 'Article',
-          title: 'Social Connection and Mental Health',
-          description: 'The importance of relationships for wellbeing',
-          savedDate: new Date(Date.now() - 11 * 86400000),
-          category: 'Relationships',
-          author: 'Dr. James Wilson',
-        },
-      ],
-      resourceColumns: [
-        { key: 'id', label: 'ID', sortable: true, searchable: false },
-        { key: 'type', label: 'Type', sortable: true, searchable: true },
-        { key: 'title', label: 'Title', sortable: true, searchable: true },
-        { key: 'category', label: 'Category', sortable: true, searchable: true },
-        { key: 'author', label: 'Author', sortable: true, searchable: true },
-        { key: 'savedDate', label: 'Saved Date', sortable: true, searchable: true, type: 'date' },
-      ],
+      // Email history state
+      emailHistory: [],
+      isLoadingEmails: false,
+      // Saved Resources section removed
       browsingHistory: [
         {
           id: 1,
@@ -794,24 +823,223 @@ export default {
 
     // Ensure data is properly initialized
     if (!this.userActivities || this.userActivities.length === 0) {
-      console.warn('User activities data not properly initialized')
+      // optional: console.warn('User activities data not properly initialized')
     }
-    if (!this.savedResourcesList || this.savedResourcesList.length === 0) {
-      console.warn('Saved resources data not properly initialized')
+
+    // Load journal history on mount
+    this.loadJournalHistory()
+
+    // Load email history on mount
+    this.loadEmailHistory()
+
+    // Generate sample journal data for development (only for lanxinlu1239@gmail.com)
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      try {
+        const { generateJournalEntries } = await import('../utils/generateJournalData.js')
+        const { clearDuplicateJournalEntries } = await import('../services/offlineService.js')
+
+        // First, clear any existing duplicate entries
+        clearDuplicateJournalEntries()
+
+        // Then generate new sample data
+        await generateJournalEntries()
+
+        // Reload history after generating sample data
+        setTimeout(() => this.loadJournalHistory(), 1000)
+      } catch (e) {
+        console.warn('Failed to generate sample journal data:', e)
+      }
     }
+
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+      this.isOnline = true
+      this.loadJournalHistory() // Refresh when back online
+    })
+    window.addEventListener('offline', () => {
+      this.isOnline = false
+    })
+  },
+  computed: {
+    displayedJournalHistory() {
+      return this.journalHistory.slice(0, this.displayedEntries)
+    },
   },
   methods: {
+    async loadEmailHistory() {
+      this.isLoadingEmails = true
+      try {
+        // Load local first (already capped to 100 and 30 days in offlineService)
+        const { getLocalEmails } = await import('../services/offlineService')
+        const localEmails = getLocalEmails()
+
+        // Merge with cloud if online
+        let cloudEmails = []
+        if (this.isOnline) {
+          try {
+            const { getAllEmailEventsFromCloud } = await import('../services/userDataService')
+            cloudEmails = await getAllEmailEventsFromCloud()
+          } catch (e) {
+            console.warn('Failed to load cloud emails:', e)
+          }
+        }
+
+        const all = [...localEmails, ...cloudEmails]
+        // Deduplicate by timestamp+to+subject
+        const unique = all.filter(
+          (e, i, self) =>
+            i ===
+            self.findIndex(
+              (x) =>
+                (x.timestamp || x.clientTs) === (e.timestamp || e.clientTs) &&
+                x.to === e.to &&
+                x.subject === e.subject,
+            ),
+        )
+
+        this.emailHistory = unique
+          .sort((a, b) => (b.timestamp || b.clientTs || 0) - (a.timestamp || a.clientTs || 0))
+          .slice(0, 100)
+      } finally {
+        this.isLoadingEmails = false
+      }
+    },
     selectMood(moodId) {
       this.selectedMood = moodId
     },
-    saveMood() {
-      if (this.selectedMood) {
-        // Here you would typically save to backend
-        console.log('Mood saved:', this.selectedMood, this.moodNotes)
-        alert('Mood saved successfully!')
-        this.moodNotes = ''
-        this.selectedMood = null
+    async saveJournalDraft() {
+      // Ensure we have at least mood or content
+      if (!this.selectedMood && !this.journalContent.trim()) {
+        alert('Please select a mood or write some content before saving.')
+        return
       }
+
+      const entry = {
+        mood: this.selectedMood,
+        content: this.journalContent.trim(),
+        timestamp: Date.now(),
+      }
+      try {
+        const { addLocalJournalEntry, enqueueSync } = await import('../services/offlineService')
+        const { saveJournalEntryToCloud } = await import('../services/userDataService')
+        addLocalJournalEntry(entry)
+        try {
+          await saveJournalEntryToCloud(entry)
+        } catch {
+          enqueueSync({ type: 'journal', payload: entry })
+        }
+        alert('Saved!')
+        this.clearJournal()
+        this.loadJournalHistory() // Refresh the history
+      } catch (e) {
+        console.error('Save draft error', e)
+        alert('Failed to save draft')
+      }
+    },
+    clearJournal() {
+      this.journalContent = ''
+      this.selectedMood = null
+    },
+    openJournalHistory() {
+      this.loadJournalHistory()
+    },
+    async loadJournalHistory() {
+      this.isLoadingHistory = true
+      try {
+        // Load from local storage first
+        const { getLocalJournals } = await import('../services/offlineService')
+        const localJournals = getLocalJournals()
+
+        // Try to load from cloud if online
+        let cloudJournals = []
+        if (this.isOnline) {
+          try {
+            const { getAllJournalEntriesFromCloud } = await import('../services/userDataService')
+            cloudJournals = await getAllJournalEntriesFromCloud()
+          } catch (e) {
+            console.warn('Failed to load cloud journals:', e)
+          }
+        }
+
+        // Merge and deduplicate
+        const allJournals = [...localJournals, ...cloudJournals]
+        const uniqueJournals = allJournals.filter(
+          (journal, index, self) =>
+            index ===
+            self.findIndex(
+              (j) => j.timestamp === journal.timestamp && j.content === journal.content,
+            ),
+        )
+
+        this.journalHistory = uniqueJournals.sort(
+          (a, b) => (b.timestamp || b.clientTs || 0) - (a.timestamp || a.clientTs || 0),
+        )
+      } catch (e) {
+        console.error('Failed to load journal history:', e)
+      } finally {
+        this.isLoadingHistory = false
+      }
+    },
+    toggleHistoryView() {
+      this.historyViewMode = this.historyViewMode === 'grid' ? 'list' : 'grid'
+    },
+    getMoodIcon(moodId) {
+      const mood = this.moods.find((m) => m.id === moodId)
+      return mood ? mood.icon : 'fas fa-question'
+    },
+    getMoodLabel(moodId) {
+      const mood = this.moods.find((m) => m.id === moodId)
+      return mood ? mood.label : 'Unknown'
+    },
+    startEdit(entry) {
+      this.editingEntry = entry.id
+      this.editMood = entry.mood
+      this.editContent = entry.content || ''
+    },
+    cancelEdit() {
+      this.editingEntry = null
+      this.editMood = null
+      this.editContent = ''
+    },
+    async saveEdit(entry) {
+      if (!this.editMood && !this.editContent.trim()) {
+        alert('Please select a mood or write some content.')
+        return
+      }
+
+      const updatedEntry = {
+        ...entry,
+        mood: this.editMood,
+        content: this.editContent.trim(),
+        timestamp: entry.timestamp, // Keep original timestamp
+      }
+
+      try {
+        const { addLocalJournalEntry, enqueueSync } = await import('../services/offlineService')
+        const { saveJournalEntryToCloud } = await import('../services/userDataService')
+        addLocalJournalEntry(updatedEntry)
+        try {
+          await saveJournalEntryToCloud(updatedEntry)
+        } catch {
+          enqueueSync({ type: 'journal', payload: updatedEntry })
+        }
+        this.cancelEdit()
+        this.loadJournalHistory() // Refresh the history
+        alert('Entry updated!')
+      } catch (e) {
+        console.error('Update error', e)
+        alert('Failed to update entry')
+      }
+    },
+    loadMoreEntries() {
+      this.displayedEntries = Math.min(this.displayedEntries + 7, this.journalHistory.length)
+    },
+    toggleExpanded(entry) {
+      this.expandedEntry = this.expandedEntry === entry.id ? null : entry.id
+    },
+    getPreviewText(content) {
+      if (!content) return ''
+      return content.length > 150 ? content.substring(0, 150) + '...' : content
     },
     formatDate(date) {
       if (!date) return 'N/A'
@@ -877,4 +1105,5 @@ export default {
 
 <style scoped>
 @import '../assets/dashboard.css';
+@import '../assets/journal-styles.css';
 </style>
