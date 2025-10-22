@@ -329,7 +329,7 @@ onMounted(() => {
                 </div>
                 <div class="profile-item">
                   <label>Role:</label>
-                  <span class="badge bg-primary">{{ userProfile.role || 'user' }}</span>
+                  <span>{{ userProfile.role || 'user' }}</span>
                 </div>
                 <div class="profile-item">
                   <label>Member since:</label>

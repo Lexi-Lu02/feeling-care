@@ -19,6 +19,7 @@ import {
   allPosts,
 } from '../services/firestoreBlogService'
 import { imageUploadService } from '../services/imageUploadService'
+import { sendSimpleEmail } from '../services/emailService'
 import InteractiveTable from '../components/InteractiveTable.vue'
 
 // Initialize Firebase and Firestore
@@ -63,6 +64,19 @@ const adminActions = ref([
     },
   },
   {
+    icon: '📧',
+    title: 'Bulk Email',
+    description: 'Send emails to selected user roles',
+    buttonText: 'Send Emails',
+    handler: () => {
+      // Scroll to Bulk Email section
+      const bulkEmailSection = document.querySelector('.bulk-email-section')
+      if (bulkEmailSection) {
+        bulkEmailSection.scrollIntoView({ behavior: 'smooth' })
+      }
+    },
+  },
+  {
     icon: '📊',
     title: 'Analytics',
     description: 'View detailed system analytics and reports',
@@ -87,15 +101,6 @@ const adminActions = ref([
     buttonText: 'Security',
     handler: () => {
       // Security feature clicked
-    },
-  },
-  {
-    icon: '📋',
-    title: 'Reports',
-    description: 'Generate and view system reports',
-    buttonText: 'Reports',
-    handler: () => {
-      // Reports feature clicked
     },
   },
 ])
@@ -140,6 +145,48 @@ const settings = ref({
   maintenanceMode: false,
   sessionTimeout: 30,
   passwordPolicy: 'medium',
+})
+
+// Bulk Email Data
+const bulkEmailForm = ref({
+  subject: '',
+  message: '',
+  selectedRole: '',
+  emailType: 'maintenance', // maintenance, announcement, system
+  fromEmail: 'admin@feelingcare.com',
+})
+
+const isSendingBulkEmail = ref(false)
+const bulkEmailStatus = ref('')
+const availableRoles = ref([
+  { value: 'all', label: 'All Users', description: 'Send to all registered users' },
+  {
+    value: 'myself',
+    label: 'For Myself',
+    description: 'Send to users who selected "For Myself"',
+  },
+  {
+    value: 'someone-else',
+    label: 'For Someone Else',
+    description: 'Send to users who selected "For Someone Else"',
+  },
+])
+const emailTemplates = ref({
+  maintenance: {
+    subject: 'Website Maintenance Notice',
+    message:
+      'We will be performing scheduled maintenance on our website. During this time, some features may be temporarily unavailable. We apologize for any inconvenience.',
+  },
+  announcement: {
+    subject: 'Important Announcement',
+    message:
+      'We have an important announcement to share with our community. Please read the following information carefully.',
+  },
+  system: {
+    subject: 'System Update',
+    message:
+      'We have updated our system with new features and improvements. Please log in to explore the new functionality.',
+  },
 })
 
 // User management methods
@@ -441,6 +488,133 @@ const saveSecuritySettings = () => {
   // Security settings saved
 }
 
+// Bulk Email Methods
+const loadEmailTemplate = () => {
+  const template = emailTemplates.value[bulkEmailForm.value.emailType]
+  if (template) {
+    bulkEmailForm.value.subject = template.subject
+    bulkEmailForm.value.message = template.message
+  }
+}
+
+const getUsersByRoles = (selectedRole) => {
+  switch (selectedRole) {
+    case 'all':
+      return users.value
+    case 'myself':
+      return users.value.filter((user) => user.role === 'myself')
+    case 'someone-else':
+      return users.value.filter((user) => user.role === 'someone-else')
+    default:
+      return []
+  }
+}
+
+const sendBulkEmail = async () => {
+  if (!bulkEmailForm.value.subject || !bulkEmailForm.value.message) {
+    alert('Please fill in both subject and message')
+    return
+  }
+
+  if (!bulkEmailForm.value.selectedRole) {
+    alert('Please select a target audience')
+    return
+  }
+
+  const targetUsers = getUsersByRoles(bulkEmailForm.value.selectedRole)
+
+  if (targetUsers.length === 0) {
+    alert('No users found with the selected roles')
+    return
+  }
+
+  if (!confirm(`Are you sure you want to send this email to ${targetUsers.length} users?`)) {
+    return
+  }
+
+  isSendingBulkEmail.value = true
+  bulkEmailStatus.value = 'Sending emails...'
+
+  let successCount = 0
+  let errorCount = 0
+
+  try {
+    // Send emails in batches to avoid overwhelming the email service
+    const batchSize = 5
+    for (let i = 0; i < targetUsers.length; i += batchSize) {
+      const batch = targetUsers.slice(i, i + batchSize)
+
+      const promises = batch.map(async (user) => {
+        try {
+          const result = await sendSimpleEmail(
+            user.email,
+            bulkEmailForm.value.fromEmail,
+            bulkEmailForm.value.subject,
+            bulkEmailForm.value.message,
+            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">${bulkEmailForm.value.subject}</h2>
+              <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                ${bulkEmailForm.value.message.replace(/\n/g, '<br>')}
+              </div>
+              <p style="color: #666; font-size: 14px;">
+                Best regards,<br>
+                FeelingCare Team
+              </p>
+            </div>`,
+          )
+
+          if (result.success) {
+            successCount++
+          } else {
+            errorCount++
+            console.error(`Failed to send email to ${user.email}:`, result.message)
+          }
+        } catch (error) {
+          errorCount++
+          console.error(`Error sending email to ${user.email}:`, error)
+        }
+      })
+
+      await Promise.all(promises)
+
+      // Update status
+      bulkEmailStatus.value = `Sent ${successCount + errorCount} of ${targetUsers.length} emails...`
+
+      // Small delay between batches to be respectful to the email service
+      if (i + batchSize < targetUsers.length) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+    }
+
+    bulkEmailStatus.value = `Bulk email completed! Sent: ${successCount}, Failed: ${errorCount}`
+
+    if (successCount > 0) {
+      alert(
+        `Bulk email sent successfully!\nSent: ${successCount} emails\nFailed: ${errorCount} emails`,
+      )
+    } else {
+      alert('Failed to send any emails. Please check the console for errors.')
+    }
+  } catch (error) {
+    console.error('Bulk email error:', error)
+    bulkEmailStatus.value = 'Error sending bulk emails'
+    alert('An error occurred while sending bulk emails. Please try again.')
+  } finally {
+    isSendingBulkEmail.value = false
+  }
+}
+
+const resetBulkEmailForm = () => {
+  bulkEmailForm.value = {
+    subject: '',
+    message: '',
+    selectedRole: '',
+    emailType: 'maintenance',
+    fromEmail: 'admin@feelingcare.com',
+  }
+  bulkEmailStatus.value = ''
+}
+
 onMounted(async () => {
   // Set up real-time listener for users collection
   usersUnsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
@@ -627,6 +801,187 @@ onUnmounted(() => {
           <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
           <h4>No posts found</h4>
           <p class="text-muted">There are no posts to display at the moment.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bulk Email Section -->
+    <section class="bulk-email-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fas fa-envelope me-2"></i>
+            Bulk Email Service
+          </h2>
+          <p class="section-description">
+            Send emails to users based on their roles for maintenance notices, announcements, and
+            system updates.
+          </p>
+        </div>
+
+        <div class="row">
+          <div class="col-12 col-lg-8">
+            <div class="bulk-email-card">
+              <form @submit.prevent="sendBulkEmail">
+                <!-- Email Type Selection -->
+                <div class="mb-4">
+                  <label class="form-label">Email Type</label>
+                  <select
+                    v-model="bulkEmailForm.emailType"
+                    @change="loadEmailTemplate"
+                    class="form-select"
+                  >
+                    <option value="maintenance">Website Maintenance</option>
+                    <option value="announcement">Important Announcement</option>
+                    <option value="system">System Update</option>
+                    <option value="custom">Custom Message</option>
+                  </select>
+                </div>
+
+                <!-- Target Audience -->
+                <div class="mb-4">
+                  <label for="targetAudience" class="form-label"
+                    >I am sending this email for:</label
+                  >
+                  <select
+                    id="targetAudience"
+                    v-model="bulkEmailForm.selectedRole"
+                    class="form-select"
+                    required
+                  >
+                    <option value="">Select an option</option>
+                    <option v-for="role in availableRoles" :key="role.value" :value="role.value">
+                      {{ role.label }}
+                    </option>
+                  </select>
+                  <div v-if="bulkEmailForm.selectedRole" class="mt-2">
+                    <small class="text-muted">
+                      {{
+                        availableRoles.find((r) => r.value === bulkEmailForm.selectedRole)
+                          ?.description
+                      }}
+                      ({{ getUsersByRoles(bulkEmailForm.selectedRole).length }} recipients)
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Subject -->
+                <div class="mb-4">
+                  <label for="emailSubject" class="form-label">Subject</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="emailSubject"
+                    v-model="bulkEmailForm.subject"
+                    placeholder="Enter email subject"
+                    required
+                  />
+                </div>
+
+                <!-- Message -->
+                <div class="mb-4">
+                  <label for="emailMessage" class="form-label">Message</label>
+                  <textarea
+                    class="form-control"
+                    id="emailMessage"
+                    rows="6"
+                    v-model="bulkEmailForm.message"
+                    placeholder="Enter your message here..."
+                    required
+                  ></textarea>
+                </div>
+
+                <!-- From Email -->
+                <div class="mb-4">
+                  <label for="fromEmail" class="form-label">From Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="fromEmail"
+                    v-model="bulkEmailForm.fromEmail"
+                    required
+                  />
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    :disabled="isSendingBulkEmail || !bulkEmailForm.selectedRole"
+                  >
+                    <i
+                      class="fas fa-paper-plane me-1"
+                      :class="{ 'fa-spin': isSendingBulkEmail }"
+                    ></i>
+                    {{ isSendingBulkEmail ? 'Sending...' : 'Send Bulk Email' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    @click="resetBulkEmailForm"
+                    :disabled="isSendingBulkEmail"
+                  >
+                    <i class="fas fa-undo me-1"></i>
+                    Reset Form
+                  </button>
+                </div>
+
+                <!-- Status Display -->
+                <div v-if="bulkEmailStatus" class="mt-3">
+                  <div
+                    class="alert"
+                    :class="bulkEmailStatus.includes('Error') ? 'alert-danger' : 'alert-info'"
+                  >
+                    <i class="fas fa-info-circle me-1"></i>
+                    {{ bulkEmailStatus }}
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-4">
+            <div class="bulk-email-info">
+              <h5>Email Templates</h5>
+              <div class="template-list">
+                <div class="template-item">
+                  <h6>Maintenance Notice</h6>
+                  <p>For scheduled maintenance and downtime notifications</p>
+                </div>
+                <div class="template-item">
+                  <h6>Announcement</h6>
+                  <p>For important news and community updates</p>
+                </div>
+                <div class="template-item">
+                  <h6>System Update</h6>
+                  <p>For new features and system improvements</p>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <h6>User Statistics</h6>
+                <div class="user-stats">
+                  <div class="stat-item">
+                    <span class="stat-number">{{ users.length }}</span>
+                    <span class="stat-label">All Users</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number">{{
+                      users.filter((user) => user.role === 'myself').length
+                    }}</span>
+                    <span class="stat-label">For Myself</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number">{{
+                      users.filter((user) => user.role === 'someone-else').length
+                    }}</span>
+                    <span class="stat-label">For Someone Else</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
