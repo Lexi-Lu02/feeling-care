@@ -561,6 +561,7 @@ const sendBulkEmail = async () => {
                 FeelingCare Team
               </p>
             </div>`,
+            bulkEmailForm.value.fromEmail,
           )
 
           if (result.success) {

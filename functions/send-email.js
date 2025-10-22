@@ -1,12 +1,14 @@
 export async function onRequestPost(context) {
   try {
     const SENDGRID_API_KEY = context.env.FeelingCareKey
+    const VERIFIED_SENDER_EMAIL = context.env.VERIFIED_SENDER_EMAIL || 'lanxinlu0102@gmail.com'
     const data = await context.request.json()
 
     // Prepare email payload
     const emailPayload = {
       personalizations: [{ to: [{ email: data.to }] }],
-      from: { email: data.from || 'lanxinlu0102@gmail.com', name: 'FeelingCareSupport' },
+      // Always send from the verified sender to satisfy SPF/DKIM
+      from: { email: VERIFIED_SENDER_EMAIL, name: 'FeelingCareSupport' },
       subject: data.subject || 'No Subject',
       content: [
         {
@@ -14,6 +16,11 @@ export async function onRequestPost(context) {
           value: data.html || data.text || 'No message content provided.',
         },
       ],
+    }
+
+    // Optional Reply-To: where recipients can respond
+    if (data.replyTo) {
+      emailPayload.reply_to = { email: data.replyTo }
     }
 
     if (data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0) {

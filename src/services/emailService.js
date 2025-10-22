@@ -11,23 +11,33 @@
  * @param {Array<Object>} attachments - Optional array of attachment objects
  * @returns {Promise<Object>} - Result object with success status and message
  */
-export const sendEmailWithAttachment = async (to, from, subject, text, html, attachments = []) => {
+export const sendEmailWithAttachment = async (
+  to,
+  from,
+  subject,
+  text,
+  html,
+  attachments = [],
+  replyTo,
+) => {
   try {
     console.log('📧 Attempting to send email:', { to, from, subject })
 
-    // Cloudflare functions are exposed at the root (not /api/)
-    const response = await fetch('/send-email', {
+    // Use your deployed Cloudflare domain
+    const response = await fetch('https://feeling-care.pages.dev/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         to,
+        // backend will force From to the verified sender; we forward what UI entered for transparency
         from,
         subject,
         text,
         html,
         attachments,
+        replyTo,
       }),
     })
 
@@ -53,8 +63,8 @@ export const sendEmailWithAttachment = async (to, from, subject, text, html, att
 /**
  * Sends a simple email without attachments
  */
-export const sendSimpleEmail = async (to, from, subject, text, html) => {
-  return await sendEmailWithAttachment(to, from, subject, text, html, [])
+export const sendSimpleEmail = async (to, from, subject, text, html, replyTo) => {
+  return await sendEmailWithAttachment(to, from, subject, text, html, [], replyTo)
 }
 
 /**

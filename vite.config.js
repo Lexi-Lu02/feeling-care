@@ -12,4 +12,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/send-email': {
+        target: 'https://feeling-care.pages.dev',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 })
